@@ -54,7 +54,7 @@
                     {form_field form=$form field='description'}
                         <div class="form-group">
                             <label for="{$label_attr.for}" class="control-label">{$label} : </label>
-                            <textarea id="{$label_attr.for}" required="required" name="{$name}" class="wysiwyg form-control" placeholder="{intl l='description'}">{$value}</textarea>
+                            <textarea id="{$label_attr.for}" name="{$name}" row="10" class="wysiwyg form-control">{$value}</textarea>
                         </div>
                     {/form_field}
 
@@ -146,7 +146,7 @@
                                                 {form_field form=$form field='description'}
                                                     <div class="form-group">
                                                         <label for="{$label_attr.for}-{$ID}" class="control-label">{$label} : </label>
-                                                        <textarea id="{$label_attr.for}-{$ID}" required="required" name="{$name}" class="wysiwyg form-control" placeholder="{intl l='description'}">{$DESCRIPTION}</textarea>
+                                                        <textarea id="{$label_attr.for}" name="{$name}" row="10" class="wysiwyg form-control">{$DESCRIPTION}</textarea>
                                                     </div>
                                                 {/form_field}
 
