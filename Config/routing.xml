@@ -1,0 +1,20 @@
+
+<routes xmlns="http://symfony.com/schema/routing"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
+
+    <route id="admin.tabs.content.association" path="/admin/content/update/{contentId}/tabs">
+        <default key="_controller">Tabs\Controller\Admin\TabsController::manageTabsContentAssociation</default>
+        <requirement key="contentId">\d+</requirement>
+    </route>
+
+    <route id="admin.tabs.content.association.delete" path="/admin/modules/tabs/delete">
+        <default key="_controller">Tabs\Controller\Admin\TabsController::deleteAction</default>
+    </route>
+
+    <route id="admin.tabs.product.association" path="/admin/product/update/{productId}/tabs">
+        <default key="_controller">Tabs\Controller\Admin\TabsController::manageTabsProductAssociation</default>
+        <requirement key="productId">\d+</requirement>
+    </route>
+
+</routes>

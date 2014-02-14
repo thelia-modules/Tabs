@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database defaultIdMethod="native" name="thelia">
+    <!--
+    See propel documentation on http://propelorm.org for all information about schema file
+    -->
+    <table name="content_associated_tab" namespace="Tabs\Model">
+        <column autoIncrement="true" name="id" primaryKey="true" required="true" type="INTEGER" />
+        <column name="content_id" required="true" type="INTEGER" />
+        <column name="title" size="255" type="VARCHAR" />
+        <column name="description" type="CLOB" />
+        <column name="position" required="true" type="INTEGER" />
+        <column name="visible" type="TINYINT" />
+        <foreign-key foreignTable="content" name="fk_content_associated_tab_content_id" onDelete="CASCADE" onUpdate="RESTRICT">
+            <reference foreign="id" local="content_id" />
+        </foreign-key>
+        <index name="idx_content_associated_tab_content_id">
+            <index-column name="content_id" />
+        </index>
+        <behavior name="timestampable" />
+        <behavior name="i18n">
+            <parameter name="i18n_columns" value="title,description" />
+        </behavior>
+    </table>
+
+    <table name="product_associated_tab" namespace="Tabs\Model">
+        <column autoIncrement="true" name="id" primaryKey="true" required="true" type="INTEGER" />
+        <column name="product_id" required="true" type="INTEGER" />
+        <column name="title" size="255" type="VARCHAR" />
+        <column name="description" type="CLOB" />
+        <column name="position" required="true" type="INTEGER" />
+        <column name="visible" type="TINYINT" />
+        <foreign-key foreignTable="content" name="fk_product_associated_tab_product_id" onDelete="CASCADE" onUpdate="RESTRICT">
+            <reference foreign="id" local="product_id" />
+        </foreign-key>
+        <index name="idx_product_associated_tab_product_id">
+            <index-column name="product_id" />
+        </index>
+        <behavior name="timestampable" />
+        <behavior name="i18n">
+            <parameter name="i18n_columns" value="title,description" />
+        </behavior>
+    </table>
+
+
+    <external-schema filename="local/config/schema.xml" referenceOnly="true" />
+</database>
