@@ -29,6 +29,7 @@ use Tabs\Event\TabsEvent;
 use Tabs\Form\TabsContentForm;
 use Tabs\Form\TabsProductForm;
 use Tabs\Model\ContentAssociatedTabQuery;
+use Tabs\Model\ProductAssociatedTabQuery;
 use Thelia\Controller\Admin\AbstractSeoCrudController;
 use Thelia\Controller\Admin\unknown;
 use Thelia\Core\Security\AccessManager;
@@ -181,7 +182,7 @@ class TabsController extends AbstractSeoCrudController{
             return $this->createNewTabProductAssociation($productId);
         }
         else{
-            return $this->updateTabProductAssociation($productId);
+            return $this->updateTabProductAssociation($tabId);
         }
 
     }
@@ -239,7 +240,7 @@ class TabsController extends AbstractSeoCrudController{
 
         try {
 
-            $tab = ContentAssociatedTabQuery::create()->findPk($tabId);
+            $tab = ProductAssociatedTabQuery::create()->findPk($tabId);
 
             if (null === $tab) {
                 throw new \InvalidArgumentException(sprintf("%d tab id does not exist", $tabId));
