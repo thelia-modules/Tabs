@@ -22,8 +22,8 @@ use Tabs\Model\ProductAssociatedTabI18n as ChildProductAssociatedTabI18n;
 use Tabs\Model\ProductAssociatedTabI18nQuery as ChildProductAssociatedTabI18nQuery;
 use Tabs\Model\ProductAssociatedTabQuery as ChildProductAssociatedTabQuery;
 use Tabs\Model\Map\ProductAssociatedTabTableMap;
-use Thelia\Model\Content as ChildContent;
-use Thelia\Model\ContentQuery;
+use Thelia\Model\Product as ChildProduct;
+use Thelia\Model\ProductQuery;
 
 abstract class ProductAssociatedTab implements ActiveRecordInterface
 {
@@ -96,9 +96,9 @@ abstract class ProductAssociatedTab implements ActiveRecordInterface
     protected $updated_at;
 
     /**
-     * @var        Content
+     * @var        Product
      */
-    protected $aContent;
+    protected $aProduct;
 
     /**
      * @var        ObjectCollection|ChildProductAssociatedTabI18n[] Collection to store aggregation of ChildProductAssociatedTabI18n objects.
@@ -514,8 +514,8 @@ abstract class ProductAssociatedTab implements ActiveRecordInterface
             $this->modifiedColumns[ProductAssociatedTabTableMap::PRODUCT_ID] = true;
         }
 
-        if ($this->aContent !== null && $this->aContent->getId() !== $v) {
-            $this->aContent = null;
+        if ($this->aProduct !== null && $this->aProduct->getId() !== $v) {
+            $this->aProduct = null;
         }
 
 
@@ -696,8 +696,8 @@ abstract class ProductAssociatedTab implements ActiveRecordInterface
      */
     public function ensureConsistency()
     {
-        if ($this->aContent !== null && $this->product_id !== $this->aContent->getId()) {
-            $this->aContent = null;
+        if ($this->aProduct !== null && $this->product_id !== $this->aProduct->getId()) {
+            $this->aProduct = null;
         }
     } // ensureConsistency
 
@@ -738,7 +738,7 @@ abstract class ProductAssociatedTab implements ActiveRecordInterface
 
         if ($deep) {  // also de-associate any related objects?
 
-            $this->aContent = null;
+            $this->aProduct = null;
             $this->collProductAssociatedTabI18ns = null;
 
         } // if (deep)
@@ -868,11 +868,11 @@ abstract class ProductAssociatedTab implements ActiveRecordInterface
             // method.  This object relates to these object(s) by a
             // foreign key reference.
 
-            if ($this->aContent !== null) {
-                if ($this->aContent->isModified() || $this->aContent->isNew()) {
-                    $affectedRows += $this->aContent->save($con);
+            if ($this->aProduct !== null) {
+                if ($this->aProduct->isModified() || $this->aProduct->isNew()) {
+                    $affectedRows += $this->aProduct->save($con);
                 }
-                $this->setContent($this->aContent);
+                $this->setProduct($this->aProduct);
             }
 
             if ($this->isNew() || $this->isModified()) {
@@ -1098,8 +1098,8 @@ abstract class ProductAssociatedTab implements ActiveRecordInterface
         }
 
         if ($includeForeignObjects) {
-            if (null !== $this->aContent) {
-                $result['Content'] = $this->aContent->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
+            if (null !== $this->aProduct) {
+                $result['Product'] = $this->aProduct->toArray($keyType, $includeLazyLoadColumns,  $alreadyDumpedObjects, true);
             }
             if (null !== $this->collProductAssociatedTabI18ns) {
                 $result['ProductAssociatedTabI18ns'] = $this->collProductAssociatedTabI18ns->toArray(null, true, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
@@ -1314,13 +1314,13 @@ abstract class ProductAssociatedTab implements ActiveRecordInterface
     }
 
     /**
-     * Declares an association between this object and a ChildContent object.
+     * Declares an association between this object and a ChildProduct object.
      *
-     * @param                  ChildContent $v
+     * @param                  ChildProduct $v
      * @return                 \Tabs\Model\ProductAssociatedTab The current object (for fluent API support)
      * @throws PropelException
      */
-    public function setContent(ChildContent $v = null)
+    public function setProduct(ChildProduct $v = null)
     {
         if ($v === null) {
             $this->setProductId(NULL);
@@ -1328,10 +1328,10 @@ abstract class ProductAssociatedTab implements ActiveRecordInterface
             $this->setProductId($v->getId());
         }
 
-        $this->aContent = $v;
+        $this->aProduct = $v;
 
         // Add binding for other direction of this n:n relationship.
-        // If this object has already been added to the ChildContent object, it will not be re-added.
+        // If this object has already been added to the ChildProduct object, it will not be re-added.
         if ($v !== null) {
             $v->addProductAssociatedTab($this);
         }
@@ -1342,26 +1342,26 @@ abstract class ProductAssociatedTab implements ActiveRecordInterface
 
 
     /**
-     * Get the associated ChildContent object
+     * Get the associated ChildProduct object
      *
      * @param      ConnectionInterface $con Optional Connection object.
-     * @return                 ChildContent The associated ChildContent object.
+     * @return                 ChildProduct The associated ChildProduct object.
      * @throws PropelException
      */
-    public function getContent(ConnectionInterface $con = null)
+    public function getProduct(ConnectionInterface $con = null)
     {
-        if ($this->aContent === null && ($this->product_id !== null)) {
-            $this->aContent = ContentQuery::create()->findPk($this->product_id, $con);
+        if ($this->aProduct === null && ($this->product_id !== null)) {
+            $this->aProduct = ProductQuery::create()->findPk($this->product_id, $con);
             /* The following can be used additionally to
                 guarantee the related object contains a reference
                 to this object.  This level of coupling may, however, be
                 undesirable since it could result in an only partially populated collection
                 in the referenced object.
-                $this->aContent->addProductAssociatedTabs($this);
+                $this->aProduct->addProductAssociatedTabs($this);
              */
         }
 
-        return $this->aContent;
+        return $this->aProduct;
     }
 
 
@@ -1647,7 +1647,7 @@ abstract class ProductAssociatedTab implements ActiveRecordInterface
         $this->currentTranslations = null;
 
         $this->collProductAssociatedTabI18ns = null;
-        $this->aContent = null;
+        $this->aProduct = null;
     }
 
     /**

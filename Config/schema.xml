@@ -29,7 +29,7 @@
         <column name="description" type="CLOB" />
         <column name="position" required="true" type="INTEGER" />
         <column name="visible" type="TINYINT" />
-        <foreign-key foreignTable="content" name="fk_product_associated_tab_product_id" onDelete="CASCADE" onUpdate="RESTRICT">
+        <foreign-key foreignTable="product" name="fk_product_associated_tab_product_id" onDelete="CASCADE" onUpdate="RESTRICT">
             <reference foreign="id" local="product_id" />
         </foreign-key>
         <index name="idx_product_associated_tab_product_id">

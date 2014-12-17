@@ -44,7 +44,7 @@ CREATE TABLE `product_associated_tab`
     INDEX `idx_product_associated_tab_product_id` (`product_id`),
     CONSTRAINT `fk_product_associated_tab_product_id`
         FOREIGN KEY (`product_id`)
-        REFERENCES `content` (`id`)
+        REFERENCES `product` (`id`)
         ON UPDATE RESTRICT
         ON DELETE CASCADE
 ) ENGINE=InnoDB;

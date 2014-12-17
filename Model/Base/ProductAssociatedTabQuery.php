@@ -16,7 +16,7 @@ use Tabs\Model\ProductAssociatedTab as ChildProductAssociatedTab;
 use Tabs\Model\ProductAssociatedTabI18nQuery as ChildProductAssociatedTabI18nQuery;
 use Tabs\Model\ProductAssociatedTabQuery as ChildProductAssociatedTabQuery;
 use Tabs\Model\Map\ProductAssociatedTabTableMap;
-use Thelia\Model\Content;
+use Thelia\Model\Product;
 
 /**
  * Base class that represents a query for the 'product_associated_tab' table.
@@ -41,9 +41,9 @@ use Thelia\Model\Content;
  * @method     ChildProductAssociatedTabQuery rightJoin($relation) Adds a RIGHT JOIN clause to the query
  * @method     ChildProductAssociatedTabQuery innerJoin($relation) Adds a INNER JOIN clause to the query
  *
- * @method     ChildProductAssociatedTabQuery leftJoinContent($relationAlias = null) Adds a LEFT JOIN clause to the query using the Content relation
- * @method     ChildProductAssociatedTabQuery rightJoinContent($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Content relation
- * @method     ChildProductAssociatedTabQuery innerJoinContent($relationAlias = null) Adds a INNER JOIN clause to the query using the Content relation
+ * @method     ChildProductAssociatedTabQuery leftJoinProduct($relationAlias = null) Adds a LEFT JOIN clause to the query using the Product relation
+ * @method     ChildProductAssociatedTabQuery rightJoinProduct($relationAlias = null) Adds a RIGHT JOIN clause to the query using the Product relation
+ * @method     ChildProductAssociatedTabQuery innerJoinProduct($relationAlias = null) Adds a INNER JOIN clause to the query using the Product relation
  *
  * @method     ChildProductAssociatedTabQuery leftJoinProductAssociatedTabI18n($relationAlias = null) Adds a LEFT JOIN clause to the query using the ProductAssociatedTabI18n relation
  * @method     ChildProductAssociatedTabQuery rightJoinProductAssociatedTabI18n($relationAlias = null) Adds a RIGHT JOIN clause to the query using the ProductAssociatedTabI18n relation
@@ -293,7 +293,7 @@ abstract class ProductAssociatedTabQuery extends ModelCriteria
      * $query->filterByProductId(array('min' => 12)); // WHERE product_id > 12
      * </code>
      *
-     * @see       filterByContent()
+     * @see       filterByProduct()
      *
      * @param     mixed $productId The value to use as filter.
      *              Use scalar values for equality.
@@ -495,42 +495,42 @@ abstract class ProductAssociatedTabQuery extends ModelCriteria
     }
 
     /**
-     * Filter the query by a related \Thelia\Model\Content object
+     * Filter the query by a related \Thelia\Model\Product object
      *
-     * @param \Thelia\Model\Content|ObjectCollection $content The related object(s) to use as filter
+     * @param \Thelia\Model\Product|ObjectCollection $product The related object(s) to use as filter
      * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
      * @return ChildProductAssociatedTabQuery The current query, for fluid interface
      */
-    public function filterByContent($content, $comparison = null)
+    public function filterByProduct($product, $comparison = null)
     {
-        if ($content instanceof \Thelia\Model\Content) {
+        if ($product instanceof \Thelia\Model\Product) {
             return $this
-                ->addUsingAlias(ProductAssociatedTabTableMap::PRODUCT_ID, $content->getId(), $comparison);
-        } elseif ($content instanceof ObjectCollection) {
+                ->addUsingAlias(ProductAssociatedTabTableMap::PRODUCT_ID, $product->getId(), $comparison);
+        } elseif ($product instanceof ObjectCollection) {
             if (null === $comparison) {
                 $comparison = Criteria::IN;
             }
 
             return $this
-                ->addUsingAlias(ProductAssociatedTabTableMap::PRODUCT_ID, $content->toKeyValue('PrimaryKey', 'Id'), $comparison);
+                ->addUsingAlias(ProductAssociatedTabTableMap::PRODUCT_ID, $product->toKeyValue('PrimaryKey', 'Id'), $comparison);
         } else {
-            throw new PropelException('filterByContent() only accepts arguments of type \Thelia\Model\Content or Collection');
+            throw new PropelException('filterByProduct() only accepts arguments of type \Thelia\Model\Product or Collection');
         }
     }
 
     /**
-     * Adds a JOIN clause to the query using the Content relation
+     * Adds a JOIN clause to the query using the Product relation
      *
      * @param     string $relationAlias optional alias for the relation
      * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
      *
      * @return ChildProductAssociatedTabQuery The current query, for fluid interface
      */
-    public function joinContent($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    public function joinProduct($relationAlias = null, $joinType = Criteria::INNER_JOIN)
     {
         $tableMap = $this->getTableMap();
-        $relationMap = $tableMap->getRelation('Content');
+        $relationMap = $tableMap->getRelation('Product');
 
         // create a ModelJoin object for this join
         $join = new ModelJoin();
@@ -545,14 +545,14 @@ abstract class ProductAssociatedTabQuery extends ModelCriteria
             $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
             $this->addJoinObject($join, $relationAlias);
         } else {
-            $this->addJoinObject($join, 'Content');
+            $this->addJoinObject($join, 'Product');
         }
 
         return $this;
     }
 
     /**
-     * Use the Content relation Content object
+     * Use the Product relation Product object
      *
      * @see useQuery()
      *
@@ -560,13 +560,13 @@ abstract class ProductAssociatedTabQuery extends ModelCriteria
      *                                   to be used as main alias in the secondary query
      * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
      *
-     * @return   \Thelia\Model\ContentQuery A secondary query class using the current class as primary query
+     * @return   \Thelia\Model\ProductQuery A secondary query class using the current class as primary query
      */
-    public function useContentQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    public function useProductQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
     {
         return $this
-            ->joinContent($relationAlias, $joinType)
-            ->useQuery($relationAlias ? $relationAlias : 'Content', '\Thelia\Model\ContentQuery');
+            ->joinProduct($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'Product', '\Thelia\Model\ProductQuery');
     }
 
     /**
