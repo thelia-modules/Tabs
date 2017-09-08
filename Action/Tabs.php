@@ -42,46 +42,44 @@ use Tabs\Model\ProductAssociatedTabQuery;
 class Tabs implements EventSubscriberInterface
 {
 
-    public function tabsContentCreate(TabsEvent $event){
-
+    public function tabsContentCreate(TabsEvent $event)
+    {
         $association = new ContentAssociatedTab();
 
         $association
+            ->setContentId($event->getContentId())
+            ->setVisible($event->getVisible())
             ->setLocale($event->getLocale())
             ->setTitle($event->getTitle())
             ->setDescription($event->getDescription())
-            ->setContentId($event->getContentId())
-            ->setVisible($event->getVisible())
             ->save();
     }
 
-    public function tabsContentUpdate(TabsEvent $event){
-
+    public function tabsContentUpdate(TabsEvent $event)
+    {
         if (null !== $tab = ContentAssociatedTabQuery::create()->findPk($event->getTabId())) {
-
             $tab
+                ->setContentId($event->getContentId())
+                ->setVisible($event->getVisible())
                 ->setLocale($event->getLocale())
                 ->setTitle($event->getTitle())
                 ->setDescription($event->getDescription())
-                ->setContentId($event->getContentId())
-                ->setVisible($event->getVisible())
                 ->save();
 
         }
 
     }
 
-    public function tabsDelete(TabsDeleteEvent $event){
+    public function tabsDelete(TabsDeleteEvent $event)
+    {
 
         if (null !== $tab = ContentAssociatedTabQuery::create()->findPk($event->getTabId())) {
-
             $tab->delete();
 
             $event->setContentId($tab->getContentId());
         }
 
         if (null !== $tab = ProductAssociatedTabQuery::create()->findPk($event->getTabId())) {
-
             $tab->delete();
 
             $event->setProductId($tab->getProductId());
@@ -89,29 +87,30 @@ class Tabs implements EventSubscriberInterface
 
     }
 
-    public function tabsProductCreate(TabsEvent $event){
+    public function tabsProductCreate(TabsEvent $event)
+    {
 
         $association = new ProductAssociatedTab();
 
         $association
+            ->setProductId($event->getProductId())
+            ->setVisible($event->getVisible())
             ->setLocale($event->getLocale())
             ->setTitle($event->getTitle())
             ->setDescription($event->getDescription())
-            ->setProductId($event->getProductId())
-            ->setVisible($event->getVisible())
             ->save();
     }
 
-    public function tabsProductUpdate(TabsEvent $event){
+    public function tabsProductUpdate(TabsEvent $event)
+    {
 
         if (null !== $tab = ProductAssociatedTabQuery::create()->findPk($event->getTabId())) {
-
             $tab
+                ->setProductId($event->getProductId())
+                ->setVisible($event->getVisible())
                 ->setLocale($event->getLocale())
                 ->setTitle($event->getTitle())
                 ->setDescription($event->getDescription())
-                ->setProductId($event->getProductId())
-                ->setVisible($event->getVisible())
                 ->save();
 
         }
@@ -141,13 +140,13 @@ class Tabs implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return array(
-            TabsEvent::TABS_CONTENT_CREATE    => array('tabsContentCreate', 128),
-            TabsEvent::TABS_CONTENT_UPDATE    => array('tabsContentUpdate', 128),
+            TabsEvent::TABS_CONTENT_CREATE => array('tabsContentCreate', 128),
+            TabsEvent::TABS_CONTENT_UPDATE => array('tabsContentUpdate', 128),
 
-            TabsEvent::TABS_PRODUCT_CREATE    => array('tabsProductCreate', 128),
-            TabsEvent::TABS_PRODUCT_UPDATE    => array('tabsProductUpdate', 128),
+            TabsEvent::TABS_PRODUCT_CREATE => array('tabsProductCreate', 128),
+            TabsEvent::TABS_PRODUCT_UPDATE => array('tabsProductUpdate', 128),
 
-            TabsEvent::TABS_DELETE            => array('tabsDelete', 128)
+            TabsEvent::TABS_DELETE => array('tabsDelete', 128)
         );
     }
 }

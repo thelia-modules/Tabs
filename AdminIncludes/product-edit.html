@@ -204,6 +204,6 @@ dialog_id       = "tabs_delete_dialog"
 dialog_title    = {intl l="[Tabs]Delete tab"}
 dialog_message  = {intl l="[Tabs]Do you really want to delete this tab ?"}
 
-form_action         = {url path="/admin/modules/tabs/delete"}
+form_action         = {token_url path="/admin/modules/tabs/delete"}
 form_content        = {$smarty.capture.tabs_delete_dialog nofilter}
 }

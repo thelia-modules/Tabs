@@ -72,19 +72,18 @@ class Tabs extends BaseI18nLoop implements PropelSearchLoopInterface
 
     public function buildModelCriteria()
     {
-
         $search = null;
 
         if ($this->getContent()) {
             $search = ContentAssociatedTabQuery::create();
 
             $search->filterByContentId($this->getContent());
-        }
-
-        if ($this->getProduct()) {
+        } elseif ($this->getProduct()) {
             $search = ProductAssociatedTabQuery::create();
 
             $search->filterByProductId($this->getProduct());
+        } else {
+            throw new \InvalidArgumentException('Please provide a product or content ID');
         }
 
         /* manage translations */
@@ -98,9 +97,11 @@ class Tabs extends BaseI18nLoop implements PropelSearchLoopInterface
 
         $visible = $this->getVisible();
 
-        if ($visible !== BooleanOrBothType::ANY) $search->filterByVisible($visible ? 1 : 0);
+        if ($visible !== BooleanOrBothType::ANY) {
+            $search->filterByVisible($visible ? 1 : 0);
+        }
 
-        $orders  = $this->getOrder();
+        $orders = $this->getOrder();
 
         foreach ($orders as $order) {
             switch ($order) {
@@ -117,8 +118,10 @@ class Tabs extends BaseI18nLoop implements PropelSearchLoopInterface
                     $search->orderByPosition(Criteria::DESC);
                     break;
                 case "given_id":
-                    if(null === $id)
+                    if (null === $id) {
                         throw new \InvalidArgumentException('Given_id order cannot be set without `id` argument');
+                    }
+
                     foreach ($id as $singleId) {
                         $givenIdMatched = 'given_id_matched_' . $singleId;
                         $search->withColumn(ContentTableMap::ID . "='$singleId'", $givenIdMatched);
@@ -138,24 +141,19 @@ class Tabs extends BaseI18nLoop implements PropelSearchLoopInterface
 
     public function parseResults(LoopResult $loopResult)
     {
-
         foreach ($loopResult->getResultDataCollection() as $tabs) {
-
             $loopResultRow = new LoopResultRow($tabs);
 
             $loopResultRow->set("ID", $tabs->getId())
-                ->set("LOCALE",$this->locale)
-                ->set("TITLE",$tabs->getVirtualColumn('i18n_TITLE'))
+                ->set("LOCALE", $this->locale)
+                ->set("TITLE", $tabs->getVirtualColumn('i18n_TITLE'))
                 ->set("DESCRIPTION", $tabs->getVirtualColumn('i18n_DESCRIPTION'))
                 ->set("POSITION", $tabs->getPosition())
-                ->set("VISIBLE", $tabs->getVisible())
-            ;
+                ->set("VISIBLE", $tabs->getVisible());
 
             $loopResult->addRow($loopResultRow);
         }
 
         return $loopResult;
-
     }
-
 }

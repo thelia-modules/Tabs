@@ -30,21 +30,23 @@ use Tabs\Form\TabsContentForm;
 use Tabs\Form\TabsProductForm;
 use Tabs\Model\ContentAssociatedTabQuery;
 use Tabs\Model\ProductAssociatedTabQuery;
-use Thelia\Controller\Admin\AbstractSeoCrudController;
-use Thelia\Controller\Admin\unknown;
+use Thelia\Controller\Admin\AbstractCrudController;
+use Thelia\Core\HttpFoundation\Response;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Form\ContentModificationForm;
 use Thelia\Form\Exception\FormValidationException;
 use Thelia\Form\ProductModificationForm;
 use Thelia\Model\Base\ProductQuery;
 use Thelia\Model\ContentQuery;
+use Thelia\Tools\URL;
 
 /**
  * Class TabsController
  * @package Tabs\Controller\Admin
  * @author Michaël Espeche <mespeche@openstudio.fr>
  */
-class TabsController extends AbstractSeoCrudController{
+class TabsController extends AbstractCrudController
+{
 
     public function __construct()
     {
@@ -52,9 +54,7 @@ class TabsController extends AbstractSeoCrudController{
             'tabs',
             'manual',
             'tabs_order',
-
             'admin.tabs',
-
             null,
             null,
             TabsEvent::TABS_DELETE,
@@ -63,30 +63,30 @@ class TabsController extends AbstractSeoCrudController{
         );
     }
 
-    public function manageTabsContentAssociation($contentId){
+    public function manageTabsContentAssociation($contentId)
+    {
 
         if (null !== $response = $this->checkAuth(array(), array('Tabs'), AccessManager::UPDATE)) {
             return $response;
         }
 
         $tabId = $this->getRequest()->get('tab_id', null);
-        if(null === $tabId){
+        if (null === $tabId) {
             return $this->createNewTabContentAssociation($contentId);
-        }
-        else{
+        } else {
             return $this->updateTabContentAssociation($tabId);
         }
 
     }
 
-    public function createNewTabContentAssociation($contentId){
+    public function createNewTabContentAssociation($contentId)
+    {
 
         $tabsContentForm = new TabsContentForm($this->getRequest());
 
         $message = false;
 
         try {
-
             $content = ContentQuery::create()->findPk($contentId);
 
             if (null === $content) {
@@ -100,14 +100,14 @@ class TabsController extends AbstractSeoCrudController{
 
             $this->dispatch(TabsEvent::TABS_CONTENT_CREATE, $event);
 
-            $this->redirectSuccess($tabsContentForm);
+            return $this->generateSuccessRedirect($tabsContentForm);
 
         } catch (FormValidationException $e) {
             $message = sprintf("Please check your input: %s", $e->getMessage());
         } catch (PropelException $e) {
             $message = $e->getMessage();
         } catch (\Exception $e) {
-            $message = sprintf("Sorry, an error occured: %s", $e->getMessage()." ".$e->getFile());
+            $message = sprintf("Sorry, an error occured: %s", $e->getMessage() . " " . $e->getFile());
         }
 
         if ($message !== false) {
@@ -117,21 +117,20 @@ class TabsController extends AbstractSeoCrudController{
 
             $this->getParserContext()
                 ->addForm($tabsContentForm)
-                ->setGeneralError($message)
-            ;
+                ->setGeneralError($message);
         }
 
         return $this->updateAction();
     }
 
-    public function updateTabContentAssociation($tabId){
+    public function updateTabContentAssociation($tabId)
+    {
 
         $tabsContentForm = new TabsContentForm($this->getRequest());
 
         $message = false;
 
         try {
-
             $tab = ContentAssociatedTabQuery::create()->findPk($tabId);
 
             if (null === $tab) {
@@ -146,14 +145,14 @@ class TabsController extends AbstractSeoCrudController{
 
             $this->dispatch(TabsEvent::TABS_CONTENT_UPDATE, $event);
 
-            $this->redirectSuccess($tabsContentForm);
+            return $this->generateSuccessRedirect($tabsContentForm);
 
         } catch (FormValidationException $e) {
             $message = sprintf("Please check your input: %s", $e->getMessage());
         } catch (PropelException $e) {
             $message = $e->getMessage();
         } catch (\Exception $e) {
-            $message = sprintf("Sorry, an error occured: %s", $e->getMessage()." ".$e->getFile());
+            $message = sprintf("Sorry, an error occured: %s", $e->getMessage() . " " . $e->getFile());
         }
 
         if ($message !== false) {
@@ -163,38 +162,37 @@ class TabsController extends AbstractSeoCrudController{
 
             $this->getParserContext()
                 ->addForm($tabsContentForm)
-                ->setGeneralError($message)
-            ;
+                ->setGeneralError($message);
         }
 
         return $this->updateAction();
 
     }
 
-    public function manageTabsProductAssociation($productId){
+    public function manageTabsProductAssociation($productId)
+    {
 
         if (null !== $response = $this->checkAuth(array(), array('Tabs'), AccessManager::UPDATE)) {
             return $response;
         }
 
         $tabId = $this->getRequest()->get('tab_id', null);
-        if(null === $tabId){
+        if (null === $tabId) {
             return $this->createNewTabProductAssociation($productId);
-        }
-        else{
+        } else {
             return $this->updateTabProductAssociation($tabId);
         }
 
     }
 
-    public function createNewTabProductAssociation($productId){
+    public function createNewTabProductAssociation($productId)
+    {
 
         $tabsProductForm = new TabsProductForm($this->getRequest());
 
         $message = false;
 
         try {
-
             $product = ProductQuery::create()->findPk($productId);
 
             if (null === $product) {
@@ -208,14 +206,13 @@ class TabsController extends AbstractSeoCrudController{
 
             $this->dispatch(TabsEvent::TABS_PRODUCT_CREATE, $event);
 
-            $this->redirectSuccess($tabsProductForm);
-
+            return $this->generateSuccessRedirect($tabsProductForm);
         } catch (FormValidationException $e) {
             $message = sprintf("Please check your input: %s", $e->getMessage());
         } catch (PropelException $e) {
             $message = $e->getMessage();
         } catch (\Exception $e) {
-            $message = sprintf("Sorry, an error occured: %s", $e->getMessage()." ".$e->getFile());
+            $message = sprintf("Sorry, an error occured: %s", $e->getMessage() . " " . $e->getFile());
         }
 
         if ($message !== false) {
@@ -225,21 +222,20 @@ class TabsController extends AbstractSeoCrudController{
 
             $this->getParserContext()
                 ->addForm($tabsProductForm)
-                ->setGeneralError($message)
-            ;
+                ->setGeneralError($message);
         }
 
         return $this->updateAction();
     }
 
-    public function updateTabProductAssociation($tabId){
+    public function updateTabProductAssociation($tabId)
+    {
 
         $tabsProductForm = new TabsProductForm($this->getRequest());
 
         $message = false;
 
         try {
-
             $tab = ProductAssociatedTabQuery::create()->findPk($tabId);
 
             if (null === $tab) {
@@ -254,14 +250,13 @@ class TabsController extends AbstractSeoCrudController{
 
             $this->dispatch(TabsEvent::TABS_PRODUCT_UPDATE, $event);
 
-            $this->redirectSuccess($tabsProductForm);
-
+            return $this->generateSuccessRedirect($tabsProductForm);
         } catch (FormValidationException $e) {
             $message = sprintf("Please check your input: %s", $e->getMessage());
         } catch (PropelException $e) {
             $message = $e->getMessage();
         } catch (\Exception $e) {
-            $message = sprintf("Sorry, an error occured: %s", $e->getMessage()." ".$e->getFile());
+            $message = sprintf("Sorry, an error occured: %s", $e->getMessage() . " " . $e->getFile());
         }
 
         if ($message !== false) {
@@ -271,8 +266,7 @@ class TabsController extends AbstractSeoCrudController{
 
             $this->getParserContext()
                 ->addForm($tabsProductForm)
-                ->setGeneralError($message)
-            ;
+                ->setGeneralError($message);
         }
 
         return $this->updateAction();
@@ -324,24 +318,22 @@ class TabsController extends AbstractSeoCrudController{
 
         // Prepare the data that will hydrate the form
         $data = array(
-            'id'           => $object->getId(),
-            'locale'       => $object->getLocale(),
-            'title'        => $object->getTitle(),
-            'chapo'        => $object->getChapo(),
-            'description'  => $object->getDescription(),
+            'id' => $object->getId(),
+            'locale' => $object->getLocale(),
+            'title' => $object->getTitle(),
+            'chapo' => $object->getChapo(),
+            'description' => $object->getDescription(),
             'postscriptum' => $object->getPostscriptum(),
-            'visible'      => $object->getVisible()
+            'visible' => $object->getVisible()
         );
 
         // Get type of association to hydrate the correct modification form
         if ($object->type === 'content') {
-
             // Setup the object form
             return new ContentModificationForm($this->getRequest(), "form", $data);
         }
 
         if ($object->type === 'product') {
-
             // Setup the object form
             return new ProductModificationForm($this->getRequest(), "form", $data);
         }
@@ -483,7 +475,9 @@ class TabsController extends AbstractSeoCrudController{
         if ($category_id == null) {
             $product = $this->getExistingObject();
 
-            if ($product !== null) $category_id = $product->getDefaultCategoryId();
+            if ($product !== null) {
+                $category_id = $product->getDefaultCategoryId();
+            }
         }
 
         return $category_id != null ? $category_id : 0;
@@ -558,19 +552,21 @@ class TabsController extends AbstractSeoCrudController{
     /**
      * Put in this method post object delete processing if required.
      *
-     * @param  unknown  $deleteEvent the delete event
+     * @param  unknown $deleteEvent the delete event
      * @return Response a response, or null to continue normal processing
      */
     protected function performAdditionalDeleteAction($deleteEvent)
     {
-        if(null !== $deleteEvent->getContentId()){
-            return $this->redirect('/admin/content/update/' . $deleteEvent->getContentId() . '?current_tab=modules');
+        if (null !== $deleteEvent->getContentId()) {
+            $url = '/admin/content/update/' . $deleteEvent->getContentId();
         }
 
-        if(null !== $deleteEvent->getProductId()){
-            return $this->redirect('/admin/products/update?product_id=' . $deleteEvent->getProductId() . '&current_tab=modules');
+        if (null !== $deleteEvent->getProductId()) {
+            $url ='/admin/products/update?product_id=' . $deleteEvent->getProductId();
         }
+
+        return $this->generateRedirect(
+            URL::getInstance()->absoluteUrl($url, [ 'current_tab' => 'modules'])
+        );
     }
-
-
 }
