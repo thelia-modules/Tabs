@@ -3,6 +3,14 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
 
+    <route id="tabs.config" path="/admin/module/Tabs">
+        <default key="_controller">Tabs\Controller\Admin\TabsController::config</default>
+    </route>
+
+    <route id="tabs.init.position" path="/admin/module/tabs/init">
+        <default key="_controller">Tabs\Controller\Admin\TabsController::initPosition</default>
+    </route>
+
     <route id="admin.tabs.content.association" path="/admin/content/update/{contentId}/tabs">
         <default key="_controller">Tabs\Controller\Admin\TabsController::manageTabsContentAssociation</default>
         <requirement key="contentId">\d+</requirement>
@@ -15,6 +23,10 @@
     <route id="admin.tabs.product.association" path="/admin/product/update/{productId}/tabs">
         <default key="_controller">Tabs\Controller\Admin\TabsController::manageTabsProductAssociation</default>
         <requirement key="productId">\d+</requirement>
+    </route>
+
+    <route id="admin.tabs.update-position" path="/admin/tabs/update-position">
+        <default key="_controller">Tabs\Controller\Admin\TabsController::updatePositionAction</default>
     </route>
 
 </routes>

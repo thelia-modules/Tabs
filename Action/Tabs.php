@@ -23,6 +23,7 @@
 
 namespace Tabs\Action;
 
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Tabs\Event\TabsDeleteEvent;
 use Tabs\Event\TabsEvent;
@@ -30,6 +31,8 @@ use Tabs\Model\Base\ContentAssociatedTabQuery;
 use Tabs\Model\ContentAssociatedTab;
 use Tabs\Model\ProductAssociatedTab;
 use Tabs\Model\ProductAssociatedTabQuery;
+use Thelia\Action\BaseAction;
+use Thelia\Core\Event\UpdatePositionEvent;
 
 /**
  *
@@ -39,7 +42,7 @@ use Tabs\Model\ProductAssociatedTabQuery;
  * @package Tabs\Action
  * @author Michaël Espeche <mespeche@openstudio.fr>
  */
-class Tabs implements EventSubscriberInterface
+class Tabs extends BaseAction implements EventSubscriberInterface
 {
 
     public function tabsContentCreate(TabsEvent $event)
@@ -117,6 +120,11 @@ class Tabs implements EventSubscriberInterface
 
     }
 
+    public function updatePosition(UpdatePositionEvent $event, $eventName, EventDispatcherInterface $dispatcher)
+    {
+        $this->genericUpdatePosition(ProductAssociatedTabQuery::create(), $event, $dispatcher);
+    }
+
     /**
      * Returns an array of event names this subscriber wants to listen to.
      *
@@ -145,6 +153,8 @@ class Tabs implements EventSubscriberInterface
 
             TabsEvent::TABS_PRODUCT_CREATE => array('tabsProductCreate', 128),
             TabsEvent::TABS_PRODUCT_UPDATE => array('tabsProductUpdate', 128),
+
+            TabsEvent::TABS_POSITION_UPDATE => array('updatePosition', 128),
 
             TabsEvent::TABS_DELETE => array('tabsDelete', 128)
         );
