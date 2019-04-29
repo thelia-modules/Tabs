@@ -81,21 +81,19 @@ class TabsController extends AbstractCrudController
             ->find();
 
         foreach ($products as $product) {
-            if($product->getId() == 19) {
-                $productTabs = ProductAssociatedTabQuery::create()
-                    ->filterByProductId($product->getId())
-                    ->find();
+            $productTabs = ProductAssociatedTabQuery::create()
+                ->filterByProductId($product->getId())
+                ->find();
 
-                $position = 1;
+            $position = 1;
 
-                /** @var ProductAssociatedTab $productTab */
-                foreach ($productTabs as $productTab) {
-                    $productTab
-                        ->setPosition($position)
-                        ->save();
+            /** @var ProductAssociatedTab $productTab */
+            foreach ($productTabs as $productTab) {
+                $productTab
+                    ->setPosition($position)
+                    ->save();
 
-                    $position++;
-                }
+                $position++;
             }
         }
 
