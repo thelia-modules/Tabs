@@ -29,6 +29,8 @@ use Thelia\Module\BaseModule;
 
 class Tabs extends BaseModule
 {
+    const MESSAGE_DOMAIN_BO = "tabs";
+
     public function postActivation(ConnectionInterface $con = null)
     {
         $database = new Database($con->getWrappedConnection());

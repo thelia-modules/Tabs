@@ -14,6 +14,7 @@ class TabsEvent extends ActionEvent{
     const TABS_PRODUCT_UPDATE            = 'tabs.product.action.update';
 
     const TABS_DELETE                    = 'tabs.action.delete';
+    const TABS_POSITION_UPDATE           = 'tabs.position.update.delete';
 
     protected $locale;
     protected $title;
@@ -21,7 +22,26 @@ class TabsEvent extends ActionEvent{
     protected $visible;
     protected $contentId;
     protected $productId;
+    protected $position;
     protected $tabId;
+
+    /**
+     * @return mixed
+     */
+    public function getPosition()
+    {
+        return $this->position;
+    }
+
+    /**
+     * @param mixed $position
+     * @return TabsEvent
+     */
+    public function setPosition($position)
+    {
+        $this->position = $position;
+        return $this;
+    }
 
     function __construct($description, $locale, $title, $visible)
     {

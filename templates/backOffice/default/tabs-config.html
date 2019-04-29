@@ -1,0 +1,11 @@
+{extends file="admin-layout.tpl"}
+
+{block name="page-title"}{intl l='Tabs module configuration' d='popin.bo.default'}{/block}
+
+{block name="main-content"}
+    <div id="wrapper" class="container">
+        <div class="general-block-decorator">
+            <a class="btn btn-danger" href="{url path='/admin/module/tabs/init'}">{intl l="Init all tabs position" d="tabs.bo.default"}</a>
+        </div>
+    </div>
+{/block}

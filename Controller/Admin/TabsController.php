@@ -24,13 +24,18 @@
 namespace Tabs\Controller\Admin;
 
 use Propel\Runtime\Exception\PropelException;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Tabs\Event\TabsDeleteEvent;
 use Tabs\Event\TabsEvent;
 use Tabs\Form\TabsContentForm;
 use Tabs\Form\TabsProductForm;
 use Tabs\Model\ContentAssociatedTabQuery;
+use Tabs\Model\Map\ProductAssociatedTabI18nTableMap;
+use Tabs\Model\Map\ProductAssociatedTabTableMap;
+use Tabs\Model\ProductAssociatedTab;
 use Tabs\Model\ProductAssociatedTabQuery;
 use Thelia\Controller\Admin\AbstractCrudController;
+use Thelia\Core\Event\UpdatePositionEvent;
 use Thelia\Core\HttpFoundation\Response;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Form\ContentModificationForm;
@@ -38,6 +43,8 @@ use Thelia\Form\Exception\FormValidationException;
 use Thelia\Form\ProductModificationForm;
 use Thelia\Model\Base\ProductQuery;
 use Thelia\Model\ContentQuery;
+use Thelia\Model\Map\ProductTableMap;
+use Thelia\Model\Product;
 use Thelia\Tools\URL;
 
 /**
@@ -59,8 +66,40 @@ class TabsController extends AbstractCrudController
             null,
             TabsEvent::TABS_DELETE,
             null,
-            null
+            TabsEvent::TABS_POSITION_UPDATE
         );
+    }
+
+    public function config()
+    {
+        return $this->render('tabs-config');
+    }
+
+    public function initPosition()
+    {
+        $products = ProductQuery::create()
+            ->find();
+
+        foreach ($products as $product) {
+            if($product->getId() == 19) {
+                $productTabs = ProductAssociatedTabQuery::create()
+                    ->filterByProductId($product->getId())
+                    ->find();
+
+                $position = 1;
+
+                /** @var ProductAssociatedTab $productTab */
+                foreach ($productTabs as $productTab) {
+                    $productTab
+                        ->setPosition($position)
+                        ->save();
+
+                    $position++;
+                }
+            }
+        }
+
+        return $this->render('tabs-config');
     }
 
     public function manageTabsContentAssociation($contentId)
@@ -538,7 +577,10 @@ class TabsController extends AbstractCrudController
      */
     protected function redirectToEditionTemplate()
     {
-        // TODO: Implement redirectToEditionTemplate() method.
+        $productId = $this->getRequest()->get('product_id');
+
+        return new RedirectResponse(URL::getInstance()->absoluteUrl("/admin/products/update",
+            ["product_id" => $productId, "current_tab" => 'modules']));
     }
 
     /**
@@ -546,7 +588,10 @@ class TabsController extends AbstractCrudController
      */
     protected function redirectToListTemplate()
     {
-        // TODO: Implement redirectToListTemplate() method.
+        $productId = $this->getRequest()->get('product_id');
+
+        return new RedirectResponse(URL::getInstance()->absoluteUrl("/admin/products/update",
+            ["product_id" => $productId, "current_tab" => 'modules']));
     }
 
     /**
@@ -562,11 +607,20 @@ class TabsController extends AbstractCrudController
         }
 
         if (null !== $deleteEvent->getProductId()) {
-            $url ='/admin/products/update?product_id=' . $deleteEvent->getProductId();
+            $url = '/admin/products/update?product_id=' . $deleteEvent->getProductId();
         }
 
         return $this->generateRedirect(
-            URL::getInstance()->absoluteUrl($url, [ 'current_tab' => 'modules'])
+            URL::getInstance()->absoluteUrl($url, ['current_tab' => 'modules'])
+        );
+    }
+
+    protected function createUpdatePositionEvent($positionChangeMode, $positionValue)
+    {
+        return new UpdatePositionEvent(
+            $this->getRequest()->get('tab_id', null),
+            $positionChangeMode,
+            $positionValue
         );
     }
 }

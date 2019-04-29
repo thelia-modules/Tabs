@@ -97,6 +97,16 @@
                                         {$TITLE}
                                     </a>
                                 </h3>
+                                <div class="pull-right">
+                                {admin_position_tabs
+                                access="UPDATE"
+                                path="/admin/tabs/update-position"
+                                url_parameter="tab_id"
+                                position="$POSITION"
+                                id="$ID"
+                                productid="{product attr="id"}"
+                                }
+                                </div>
                                 {loop type="auth" name="can_delete" role="ADMIN" resource="admin.tabs" access="DELETE"}
                                     <a class="btn btn-danger btn-xs tab-delete pull-right" title="{intl l='[Tabs]Delete this tab'}"  href="#tabs_delete_dialog" data-id="{$ID}" data-toggle="modal"><span class="glyphicon glyphicon-trash"></span></a>
                                 {/loop}
