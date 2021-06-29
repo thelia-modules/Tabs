@@ -1,7 +1,7 @@
 <?php
 /*************************************************************************************/
 /*                                                                                   */
-/*      Thelia	                                                                     */
+/*      Thelia                                                                       */
 /*                                                                                   */
 /*      Copyright (c) OpenStudio                                                     */
 /*      email : info@thelia.net                                                      */
@@ -17,14 +17,16 @@
 /*      GNU General Public License for more details.                                 */
 /*                                                                                   */
 /*      You should have received a copy of the GNU General Public License            */
-/*	    along with this program. If not, see <http://www.gnu.org/licenses/>.         */
+/*      along with this program. If not, see <http://www.gnu.org/licenses/>.         */
 /*                                                                                   */
 /*************************************************************************************/
 
 namespace Tabs\Loop;
 
 use Propel\Runtime\ActiveQuery\Criteria;
-use Tabs\Model\Base\ContentAssociatedTabQuery;
+use Tabs\Model\CategoryAssociatedTabQuery;
+use Tabs\Model\ContentAssociatedTabQuery;
+use Tabs\Model\FolderAssociatedTabQuery;
 use Tabs\Model\ProductAssociatedTabQuery;
 use Thelia\Core\Template\Element\BaseI18nLoop;
 use Thelia\Core\Template\Element\LoopResult;
@@ -48,112 +50,144 @@ use Thelia\Type\TypeCollection;
  */
 class Tabs extends BaseI18nLoop implements PropelSearchLoopInterface
 {
-    protected $timestampable = true;
+	protected $timestampable = true;
 
-    /**
-     * @return ArgumentCollection
-     */
-    protected function getArgDefinitions()
-    {
-        return new ArgumentCollection(
-            Argument::createIntListTypeArgument('id'),
-            Argument::createIntListTypeArgument('content'),
-            Argument::createIntListTypeArgument('product'),
-            Argument::createBooleanOrBothTypeArgument('visible', 1),
-            new Argument(
-                'order',
-                new TypeCollection(
-                    new EnumListType(array('alpha', 'alpha-reverse', 'manual', 'manual_reverse', 'random', 'given_id'))
-                ),
-                'alpha'
-            )
-        );
-    }
+	/**
+	 * @return ArgumentCollection
+	 */
+	protected function getArgDefinitions()
+	{
+		return new ArgumentCollection(
+			Argument::createIntListTypeArgument('id'),
+			Argument::createAnyTypeArgument('source'),
+			Argument::createIntTypeArgument('source_id'),
+			Argument::createIntTypeArgument('position'),
+			Argument::createBooleanOrBothTypeArgument('visible', 1),
+			new Argument(
+				'order',
+				new TypeCollection(
+					new EnumListType(array('alpha', 'alpha-reverse', 'manual', 'manual_reverse', 'random', 'given_id'))
+				),
+				'alpha'
+			)
+		);
+	}
 
-    public function buildModelCriteria()
-    {
-        $search = null;
+	/**
+	 * @return \Tabs\Model\ContentAssociatedTabQuery|ProductAssociatedTabQuery|CategoryAssociatedTabQuery|FolderAssociatedTabQuery
+	 */
+	protected function getSearchQuery()
+	{
 
-        if ($this->getContent()) {
-            $search = ContentAssociatedTabQuery::create();
 
-            $search->filterByContentId($this->getContent());
-        } elseif ($this->getProduct()) {
-            $search = ProductAssociatedTabQuery::create();
+		if (null !== $source = $this->getSource()) {
+			$id = $this->getSourceId();
 
-            $search->filterByProductId($this->getProduct());
-        } else {
-            throw new \InvalidArgumentException('Please provide a product or content ID');
-        }
+			switch ($source) {
+				case 'product':
+					$query = ProductAssociatedTabQuery::create();
+					if (null !== $id) {
+						$query->filterByProductId($id);
+					}
+					return $query;
 
-        /* manage translations */
-        $this->configureI18nProcessing($search, array('TITLE', 'DESCRIPTION'));
+				case 'content':
+					$query = ContentAssociatedTabQuery::create();
+					if (null !== $id) {
+						$query->filterByContentId($id);
+					}
+					return $query;
 
-        $id = $this->getId();
+				case 'category':
+					$query = CategoryAssociatedTabQuery::create();
+					if (null !== $id) {
+						$query->filterByCategoryId($id);
+					}
+					return $query;
 
-        if (!is_null($id)) {
-            $search->filterById($id, Criteria::IN);
-        }
+				case 'folder':
+					$query = FolderAssociatedTabQuery::create();
+					if (null !== $id) {
+						$query->filterByFolderId($id);
+					}
+					return $query;
+			}
+		}
 
-        $visible = $this->getVisible();
+		throw new \InvalidArgumentException('Please provide a product or content ID, or a valid source');
+	}
 
-        if ($visible !== BooleanOrBothType::ANY) {
-            $search->filterByVisible($visible ? 1 : 0);
-        }
+	public function buildModelCriteria()
+	{
+		$search = $this->getSearchQuery();
 
-        $orders = $this->getOrder();
+		/* manage translations */
+		$this->configureI18nProcessing($search, array('TITLE', 'DESCRIPTION'));
 
-        foreach ($orders as $order) {
-            switch ($order) {
-                case "alpha":
-                    $search->addAscendingOrderByColumn('i18n_TITLE');
-                    break;
-                case "alpha-reverse":
-                    $search->addDescendingOrderByColumn('i18n_TITLE');
-                    break;
-                case "manual":
-                    $search->orderByPosition(Criteria::ASC);
-                    break;
-                case "manual_reverse":
-                    $search->orderByPosition(Criteria::DESC);
-                    break;
-                case "given_id":
-                    if (null === $id) {
-                        throw new \InvalidArgumentException('Given_id order cannot be set without `id` argument');
-                    }
+		$id = $this->getId();
 
-                    foreach ($id as $singleId) {
-                        $givenIdMatched = 'given_id_matched_' . $singleId;
-                        $search->withColumn(ContentTableMap::ID . "='$singleId'", $givenIdMatched);
-                        $search->orderBy($givenIdMatched, Criteria::DESC);
-                    }
-                    break;
-                case "random":
-                    $search->clearOrderByColumns();
-                    $search->addAscendingOrderByColumn('RAND()');
-                    break(2);
-            }
-        }
+		if (!is_null($id)) {
+			$search->filterById($id, Criteria::IN);
+		}
 
-        return $search;
+		$visible = $this->getVisible();
 
-    }
+		if ($visible !== BooleanOrBothType::ANY) {
+			$search->filterByVisible($visible ? 1 : 0);
+		}
 
-    public function parseResults(LoopResult $loopResult)
-    {
-        foreach ($loopResult->getResultDataCollection() as $tabs) {
-            $loopResultRow = new LoopResultRow($tabs);
+		$orders = $this->getOrder();
 
-            $loopResultRow->set("ID", $tabs->getId())
-                ->set("LOCALE", $this->locale)
-                ->set("TITLE", $tabs->getVirtualColumn('i18n_TITLE'))
-                ->set("DESCRIPTION", $tabs->getVirtualColumn('i18n_DESCRIPTION'))
-                ->set("POSITION", $tabs->getPosition())
-                ->set("VISIBLE", $tabs->getVisible());
+		foreach ($orders as $order) {
+			switch ($order) {
+				case "alpha":
+					$search->addAscendingOrderByColumn('i18n_TITLE');
+					break;
+				case "alpha-reverse":
+					$search->addDescendingOrderByColumn('i18n_TITLE');
+					break;
+				case "manual":
+					$search->orderByPosition(Criteria::ASC);
+					break;
+				case "manual_reverse":
+					$search->orderByPosition(Criteria::DESC);
+					break;
+				case "given_id":
+					if (null === $id) {
+						throw new \InvalidArgumentException('Given_id order cannot be set without `id` argument');
+					}
 
-            $loopResult->addRow($loopResultRow);
-        }
+					foreach ($id as $singleId) {
+						$givenIdMatched = 'given_id_matched_' . $singleId;
+						$search->withColumn(ContentTableMap::ID . "='$singleId'", $givenIdMatched);
+						$search->orderBy($givenIdMatched, Criteria::DESC);
+					}
+					break;
+				case "random":
+					$search->clearOrderByColumns();
+					$search->addAscendingOrderByColumn('RAND()');
+					break(2);
+			}
+		}
 
-        return $loopResult;
-    }
+		return $search;
+	}
+
+	public function parseResults(LoopResult $loopResult)
+	{
+		foreach ($loopResult->getResultDataCollection() as $tabs) {
+			$loopResultRow = new LoopResultRow($tabs);
+
+			$loopResultRow->set("ID", $tabs->getId())
+				->set("LOCALE", $this->locale)
+				->set("TITLE", $tabs->getVirtualColumn('i18n_TITLE'))
+				->set("DESCRIPTION", $tabs->getVirtualColumn('i18n_DESCRIPTION'))
+				->set("POSITION", $tabs->getPosition())
+				->set("VISIBLE", $tabs->getVisible());
+
+			$loopResult->addRow($loopResultRow);
+		}
+
+		return $loopResult;
+	}
 }
