@@ -4,38 +4,38 @@
         xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
 
     <route id="tabs.config" path="/admin/module/Tabs">
-        <default key="_controller">Tabs\Controller\TabsController::config</default>
+        <default key="_controller">Tabs\Controller\Base\BaseTabsController::config</default>
     </route>
 
     <route id="tabs.init.position" path="/admin/module/tabs/init">
-        <default key="_controller">Tabs\Controller\TabsController::initPosition</default>
+        <default key="_controller">Tabs\Controller\Base\BaseTabsController::initPosition</default>
     </route>
 
-    <route id="admin.tabs.content.association" path="/admin/content/update/{contentId}/tabs">
-        <default key="_controller">Tabs\Controller\TabsController::manageTabsContentAssociation</default>
-        <requirement key="contentId">\d+</requirement>
-    </route>
-
-    <route id="admin.tabs.content.association.delete" path="/admin/modules/tabs/delete">
-        <default key="_controller">Tabs\Controller\TabsController::deleteAction</default>
+    <route id="admin.tabs.association.delete" path="/admin/modules/tabs/delete">
+        <default key="_controller">Tabs\Controller\Base\BaseTabsController::deleteAction</default>
     </route>
 
     <route id="admin.tabs.product.association" path="/admin/product/update/{productId}/tabs">
-        <default key="_controller">Tabs\Controller\TabsController::manageTabsProductAssociation</default>
+        <default key="_controller">Tabs\Controller\ProductTabsController::manageTabsProductAssociation</default>
         <requirement key="productId">\d+</requirement>
     </route>
 
     <route id="admin.tabs.category.association" path="/admin/category/update/{categoryId}/tabs">
-        <default key="_controller">Tabs\Controller\TabsController::manageTabsCategoryAssociation</default>
+        <default key="_controller">Tabs\Controller\CategoryTabsController::manageTabsCategoryAssociation</default>
         <requirement key="categoryId">\d+</requirement>
     </route>
 
     <route id="admin.tabs.folder.association" path="/admin/folder/update/{folderId}/tabs">
-        <default key="_controller">Tabs\Controller\TabsController::manageTabsFolderAssociation</default>
+        <default key="_controller">Tabs\Controller\FolderTabsController::manageTabsFolderAssociation</default>
         <requirement key="folderId">\d+</requirement>
     </route>
 
+    <route id="admin.tabs.content.association" path="/admin/content/update/{contentId}/tabs">
+        <default key="_controller">Tabs\Controller\ContentTabsController::manageTabsContentAssociation</default>
+        <requirement key="contentId">\d+</requirement>
+    </route>
+
     <route id="admin.tabs.update-position" path="/admin/tabs/update-position" methods="get">
-        <default key="_controller">Tabs:Tabs:updatePosition</default>
+        <default key="_controller">Tabs\Controller\Base\BaseTabsController::updatePositionAction</default>
     </route>
 </routes>
