@@ -1,0 +1,30 @@
+{extends file="tabs-edit.tpl"}
+{$tabsFormName = "tabs.admin.category"}
+{$formActionUrl = {url path="/admin/category/update/{category attr='id'}/tabs"}}
+{$formSuccessUrl = {url path="/admin/categories/update" category_id="{category attr="id"}" current_tab="modules"}}
+{$tabSource = 'category'}
+{$tabSourceId ={category attr='id'}}
+
+
+{block name="parent-context"}
+    <input name="category_id" type="hidden" value="{category attr="id"}"/>
+    {loop name="category_id" type="category" id={category attr="id"}}
+        <input name="category_id" type="hidden" value="{$DEFAULT_CATEGORY}"/>
+    {/loop}
+{/block}
+{block name="parent-context-position-tab"}
+    <div class="pull-right">
+    {admin_position_tabs
+    access="UPDATE"
+    path="/admin/tabs/update-position"
+    url_parameter="tab_id"
+    position=$POSITION
+    id=$ID
+    categoryid={category attr="id"}
+    }
+    </div>
+{/block}
+
+{block name="parent-context-loop"}
+    <input name="category_id" type="hidden" value="{category attr="id"}"/>
+{/block}

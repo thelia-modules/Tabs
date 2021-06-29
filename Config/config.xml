@@ -11,6 +11,8 @@
     <forms>
         <form name="tabs.admin.content" class="Tabs\Form\TabsContentForm"/>
         <form name="tabs.admin.product" class="Tabs\Form\TabsProductForm"/>
+        <form name="tabs.admin.category" class="Tabs\Form\TabsCategoryForm"/>
+        <form name="tabs.admin.folder" class="Tabs\Form\TabsFolderForm"/>
     </forms>
 
     <hooks>

@@ -1,0 +1,33 @@
+{extends file="tabs-edit.tpl"}
+{$tabsFormName = "tabs.admin.folder"}
+{$formActionUrl = {url path="/admin/folder/update/{folder attr='id'}/tabs"}}
+{$formSuccessUrl = {url path="/admin/folders/update/{folder attr='id'}" current_tab="modules"}}
+{$tabSource = 'folder'}
+{$tabSourceId ={folder attr='id'}}
+
+
+{block name="parent-context"}
+    {loop name="folder_id" type="folder" id={folder attr="id"}}
+        <input name="folder_id" type="hidden" value="{$DEFAULT_FOLDER}"/>
+
+    {loop name="parent" type="folder" id=$DEFAULT_FOLDER}
+        <input name="parent" type="hidden" value="{$PARENT}"/>
+    {/loop}
+    {/loop}
+{/block}
+{block name="parent-context-position-tab"}
+    <div class="pull-right">
+    {admin_position_tabs
+    access="UPDATE"
+    path="/admin/tabs/update-position"
+    url_parameter="tab_id"
+    position="$POSITION"
+    id="$ID"
+    folderid="{folder attr="id"}"
+    }
+    </div>
+{/block}
+
+{block name="parent-context-loop"}
+    <input name="folder_id" type="hidden" value="{folder attr="id"}"/>
+{/block}
