@@ -69,17 +69,6 @@
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="control-group">
-                                    <lablel>&nbsp;</lablel>
-                                    <div class="controls">
-                                        <p>{intl l='[Tabs]Tab created on %date_create. Last modification: %date_change' date_create="{format_date date=$CREATE_DATE}" date_change="{format_date date=$UPDATE_DATE}"}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <button type="submit" class="btn btn-primary">{intl l="Save"}</button>
                     </form>
                 {/form}
