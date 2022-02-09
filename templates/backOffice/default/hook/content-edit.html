@@ -1,7 +1,7 @@
 {extends file="tabs-edit.tpl"}
 {$tabsFormName = "tabs.admin.content"}
-{$formActionUrl = {url path="/admin/content/update/$id/tabs"}}
-{$formSuccessUrl = {url path="/admin/content/update/$id" current_tab="modules"}}
+{$formActionUrl = {url path="/admin/content/update/{content attr='id'}/tabs"}}
+{$formSuccessUrl = {url path="/admin/content/update/{content attr='id'}" current_tab="modules"}}
 {$tabSource = 'content'}
 {$tabSourceId ={content attr='id'}}
 
