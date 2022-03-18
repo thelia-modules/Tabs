@@ -35,8 +35,15 @@ class Tabs extends BaseModule
 
 	public function postActivation(ConnectionInterface $con = null)
 	{
-		$database = new Database($con->getWrappedConnection());
-		$database->insertSql(null, array(THELIA_ROOT . '/local/modules/Tabs/Config/thelia.sql'));
+        try {
+            ContentAssociatedTabQuery::create()->findOne();
+            ProductAssociatedTabQuery::create()->findOne();
+            FolderAssociatedTabQuery::create()->findOne();
+            CategoryAssociatedTabQuery::create()->findOne();
+        } catch (\Exception $ex) {
+            $database = new Database($con->getWrappedConnection());
+            $database->insertSql(null, array(THELIA_ROOT . '/local/modules/Tabs/Config/thelia.sql'));
+        }
 	}
 
 	public function update($currentVersion, $newVersion, ConnectionInterface $con = null)
