@@ -35,8 +35,9 @@ class TabsDeleteEvent extends TabsEvent
      */
     protected $tabId;
 
-    function __construct($tabId)
+    function __construct($description, $locale, $title, $visible, $position, $productId, $folderId, $categoryId, $contentId, $tabId)
     {
+        parent::__construct($description, $locale, $title, $visible, $position, $productId, $folderId, $categoryId, $contentId);
         $this->tabId = $tabId;
     }
 

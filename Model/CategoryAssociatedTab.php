@@ -18,7 +18,5 @@ use Thelia\Model\Tools\PositionManagementTrait;
  */
 class CategoryAssociatedTab extends BaseCategoryAssociatedTab
 {
-	use ModelEventDispatcherTrait;
  	use PositionManagementTrait;
-
 }

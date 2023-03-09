@@ -13,7 +13,7 @@ class TabsProductForm extends TabsContentForm{
         parent::buildForm();
     }
 
-    public function getName()
+    public static function getName()
     {
         return 'tabs_product';
     }

@@ -23,8 +23,13 @@
 
 namespace Tabs\Controller\Base;
 
+use Symfony\Component\Form\FormFactoryBuilderInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Security\Csrf\TokenStorage\TokenStorageInterface;
+use Symfony\Component\Validator\ValidatorBuilder;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tabs\Event\TabsDeleteEvent;
 use Tabs\Event\TabsEvent;
 use Tabs\Model\ProductAssociatedTab;
@@ -32,6 +37,8 @@ use Tabs\Model\ProductAssociatedTabQuery;
 use Thelia\Controller\Admin\AbstractCrudController;
 use Thelia\Core\Event\UpdatePositionEvent;
 use Thelia\Core\HttpFoundation\Response;
+use Thelia\Core\Template\ParserContext;
+use Thelia\Core\Translation\Translator;
 use Thelia\Form\CategoryModificationForm;
 use Thelia\Form\ContentModificationForm;
 use Thelia\Form\FolderModificationForm;
@@ -41,18 +48,32 @@ use Thelia\Model\ContentQuery;
 use Thelia\Model\FolderQuery;
 use Thelia\Model\ProductQuery;
 use Thelia\Tools\URL;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * Class BaseTabsController
  * @package Tabs\Controller\Base
  * @author Michaël Espeche <mespeche@openstudio.fr>
+ * @Route("/admin/module/tabs", name="base_tabs_")
  */
 class BaseTabsController extends AbstractCrudController
 {
 	static $possibleVars = [ 'product_id', 'category_id', 'content_id', 'folder_id'];
 
-	public function __construct()
-	{
+    private RequestStack $requestStack;
+    private EventDispatcherInterface $eventDispatcher;
+    private FormFactoryBuilderInterface $formFactoryBuilder;
+    private ValidatorBuilder $validationBuilder;
+    private TokenStorageInterface $tokenStorage;
+
+	public function __construct(
+        RequestStack $requestStack,
+        EventDispatcherInterface $eventDispatcher,
+        Translator $translator,
+        FormFactoryBuilderInterface $formFactoryBuilder,
+        ValidatorBuilder $validationBuilder,
+        TokenStorageInterface $tokenStorage
+    ){
 		parent::__construct(
 			'tabs',
 			'manual',
@@ -65,13 +86,22 @@ class BaseTabsController extends AbstractCrudController
 			null,
 			'Tabs'
 		);
+
+        $this->requestStack = $requestStack;
+        $this->eventDispatcher = $eventDispatcher;
+        $this->formFactoryBuilder = $formFactoryBuilder;
+        $this->validationBuilder = $validationBuilder;
+        $this->translator = $translator;
+        $this->tokenStorage = $tokenStorage;
 	}
 
+    #[Route('', name: 'config')]
 	public function config()
 	{
 		return $this->render('tabs-config');
 	}
 
+    #[Route('/init', name: 'init_position')]
 	public function initPosition()
 	{
 		$products = ProductQuery::create()
@@ -99,7 +129,8 @@ class BaseTabsController extends AbstractCrudController
 
 	/**
 	 * @param $data
-	 * @return \Tabs\Event\TabsEvent
+     * @Route("/delete", name="delete_event_instance")
+     * @return \Tabs\Event\TabsEvent
 	 */
 	protected function createEventInstance($data)
 	{
@@ -140,10 +171,12 @@ class BaseTabsController extends AbstractCrudController
 	 *
 	 * @param unknown $object
 	 */
-	protected function hydrateObjectForm($object)
+	protected function hydrateObjectForm(
+        ParserContext $parserContext,
+        $object)
 	{
 		// Hydrate the "SEO" tab form
-		$this->hydrateSeoForm($object);
+		$this->hydrateSeoForm($parserContext, $object);
 
 		// Prepare the data that will hydrate the form
 		$data = array(
@@ -159,22 +192,50 @@ class BaseTabsController extends AbstractCrudController
 		// Get type of association to hydrate the correct modification form
 		if ($object->type === 'content') {
 			// Setup the object form
-			return new ContentModificationForm($this->getRequest(), "form", $data);
+			return new ContentModificationForm(
+                $this->requestStack->getCurrentRequest(),
+                $this->eventDispatcher,
+                $this->translator,
+                $this->formFactoryBuilder,
+                $this->validationBuilder,
+                $this->tokenStorage
+            );
 		}
 
 		if ($object->type === 'product') {
 			// Setup the object form
-			return new ProductModificationForm($this->getRequest(), "form", $data);
+			return new ProductModificationForm(
+                $this->requestStack->getCurrentRequest(),
+                $this->eventDispatcher,
+                $this->translator,
+                $this->formFactoryBuilder,
+                $this->validationBuilder,
+                $this->tokenStorage
+            );
 		}
 
 		if ($object->type === 'category') {
 			// Setup the object form
-			return new CategoryModificationForm($this->getRequest(), "form", $data);
+			return new CategoryModificationForm(
+                $this->requestStack->getCurrentRequest(),
+                $this->eventDispatcher,
+                $this->translator,
+                $this->formFactoryBuilder,
+                $this->validationBuilder,
+                $this->tokenStorage
+            );
 		}
 
 		if ($object->type === 'folder') {
 			// Setup the object form
-			return new FolderModificationForm($this->getRequest(), "form", $data);
+			return new FolderModificationForm(
+                $this->requestStack->getCurrentRequest(),
+                $this->eventDispatcher,
+                $this->translator,
+                $this->formFactoryBuilder,
+                $this->validationBuilder,
+                $this->tokenStorage
+            );
 		}
 	}
 
@@ -203,7 +264,18 @@ class BaseTabsController extends AbstractCrudController
 	 */
 	protected function getDeleteEvent()
 	{
-		return new TabsDeleteEvent($this->getRequest()->get('tab_id'), 0);
+		return new TabsDeleteEvent(
+            $this->requestStack->getCurrentRequest()->get('description'),
+            $this->requestStack->getCurrentRequest()->get('locale'),
+            $this->requestStack->getCurrentRequest()->get('title'),
+            $this->requestStack->getCurrentRequest()->get('visible'),
+            $this->requestStack->getCurrentRequest()->get('position'),
+            $this->requestStack->getCurrentRequest()->get('productId'),
+            $this->requestStack->getCurrentRequest()->get('folderId'),
+            $this->requestStack->getCurrentRequest()->get('categoryId'),
+            $this->requestStack->getCurrentRequest()->get('contentId'),
+            $this->requestStack->getCurrentRequest()->get('tab_id')
+        );
 	}
 
 	/**
@@ -231,7 +303,7 @@ class BaseTabsController extends AbstractCrudController
 	 */
 	protected function getExistingObject()
 	{
-		$contentId = $this->getRequest()->get('content_id', null);
+		$contentId = $this->requestStack->getCurrentRequest()->get('content_id', null);
 
 		// Create ContentQuery id contentId
 		if (null !== $contentId) {
@@ -245,7 +317,7 @@ class BaseTabsController extends AbstractCrudController
 			return $query;
 		}
 
-		$productId = $this->getRequest()->get('product_id', null);
+		$productId = $this->requestStack->getCurrentRequest()->get('product_id', null);
 
 		// Create ContentQuery id contentId
 		if (null !== $productId) {
@@ -259,7 +331,7 @@ class BaseTabsController extends AbstractCrudController
 			return $query;
 		}
 
-		$folderId = $this->getRequest()->get('folder_id', null);
+		$folderId = $this->requestStack->getCurrentRequest()->get('folder_id', null);
 
 		// Create ContentQuery id contentId
 		if (null !== $folderId) {
@@ -273,7 +345,7 @@ class BaseTabsController extends AbstractCrudController
 			return $query;
 		}
 
-		$categoryId = $this->getRequest()->get('category_id', null);
+		$categoryId = $this->requestStack->getCurrentRequest()->get('category_id', null);
 
 		// Create ContentQuery id contentId
 		if (null !== $categoryId) {
@@ -322,7 +394,7 @@ class BaseTabsController extends AbstractCrudController
 
 	protected function getFolderId()
 	{
-		$folderId = $this->getRequest()->get('folder_id', null);
+		$folderId = $this->requestStack->getCurrentRequest()->get('folder_id', null);
 
 		if (null === $folderId) {
 			$content = $this->getExistingObject();
@@ -337,7 +409,7 @@ class BaseTabsController extends AbstractCrudController
 
 	protected function getCategoryId()
 	{
-		$category_id = $this->getRequest()->get('category_id', null);
+		$category_id = $this->requestStack->getCurrentRequest()->get('category_id', null);
 
 		if ($category_id == null) {
 			$product = $this->getExistingObject();
@@ -355,44 +427,44 @@ class BaseTabsController extends AbstractCrudController
 		$args = array();
 
 		// Return args for content association
-		$contentId = $this->getRequest()->get('content_id', null);
+		$contentId = $this->requestStack->getCurrentRequest()->get('content_id', null);
 
 		if (null !== $contentId) {
 			$args = array(
-				'content_id' => $this->getRequest()->get('content_id', 0),
-				'current_tab' => $this->getRequest()->get('current_tab', 'general'),
+				'content_id' => $this->requestStack->getCurrentRequest()->get('content_id', 0),
+				'current_tab' => $this->requestStack->getCurrentRequest()->get('current_tab', 'general'),
 				'folder_id' => $this->getFolderId()
 			);
 		}
 
 		// Return args for product association
-		$productId = $this->getRequest()->get('product_id', null);
+		$productId = $this->requestStack->getCurrentRequest()->get('product_id', null);
 
 		if (null !== $productId) {
 			$args = array(
-				'product_id' => $this->getRequest()->get('product_id', 0),
-				'current_tab' => $this->getRequest()->get('current_tab', 'general'),
+				'product_id' => $this->requestStack->getCurrentRequest()->get('product_id', 0),
+				'current_tab' => $this->requestStack->getCurrentRequest()->get('current_tab', 'general'),
 				'category_id' => $this->getCategoryId()
 			);
 		}
 
 		// Return args for category association
-		$categoryId = $this->getRequest()->get('category_id', null);
+		$categoryId = $this->requestStack->getCurrentRequest()->get('category_id', null);
 
 		if (null !== $categoryId) {
 			$args = array(
-				'category_id' => $this->getRequest()->get('category_id', 0),
-				'current_tab' => $this->getRequest()->get('current_tab', 'general'),
+				'category_id' => $this->requestStack->getCurrentRequest()->get('category_id', 0),
+				'current_tab' => $this->requestStack->getCurrentRequest()->get('current_tab', 'general'),
 			);
 		}
 
 		// Return args for folder association
-		$folderId = $this->getRequest()->get('folder_id', null);
+		$folderId = $this->requestStack->getCurrentRequest()->get('folder_id', null);
 
 		if (null !== $folderId) {
 			$args = array(
-				'folder_id' => $this->getRequest()->get('folder_id', 0),
-				'current_tab' => $this->getRequest()->get('current_tab', 'general'),
+				'folder_id' => $this->requestStack->getCurrentRequest()->get('folder_id', 0),
+				'current_tab' => $this->requestStack->getCurrentRequest()->get('current_tab', 'general'),
 			);
 		}
 
@@ -435,7 +507,7 @@ class BaseTabsController extends AbstractCrudController
 	 */
 	protected function redirectToEditionTemplate()
 	{
-		$productId = $this->getRequest()->get('product_id');
+		$productId = $this->requestStack->getCurrentRequest()->get('product_id');
 
 		return new RedirectResponse(URL::getInstance()->absoluteUrl("/admin/products/update",
 			["product_id" => $productId, "current_tab" => 'modules']));
@@ -447,7 +519,7 @@ class BaseTabsController extends AbstractCrudController
 	protected function redirectToListTemplate()
 	{
 		foreach (self::$possibleVars as $var) {
-			if (null !== $resourceId = $this->getRequest()->get($var)) {
+			if (null !== $resourceId = $this->requestStack->getCurrentRequest()->get($var)) {
 				switch ($var) {
 					case 'product_id' :
 						$uri = '/admin/products/update';
@@ -478,7 +550,7 @@ class BaseTabsController extends AbstractCrudController
 	 * Put in this method post object delete processing if required.
 	 *
 	 * @param  unknown $deleteEvent the delete event
-	 * @return Response a response, or null to continue normal processing
+	 * @return RedirectResponse|\Symfony\Component\HttpFoundation\Response|Response
 	 */
 	protected function performAdditionalDeleteAction($deleteEvent)
 	{
@@ -506,7 +578,7 @@ class BaseTabsController extends AbstractCrudController
 	protected function createUpdatePositionEvent($positionChangeMode, $positionValue)
 	{
 		foreach (self::$possibleVars as $var) {
-			if (null !== $this->getRequest()->get($var)) {
+			if (null !== $this->requestStack->getCurrentRequest()->get($var)) {
 				// Change our parent event name :)
 				switch ($var) {
 					case 'content_id':
@@ -526,13 +598,14 @@ class BaseTabsController extends AbstractCrudController
 		}
 
 		return new UpdatePositionEvent(
-			$this->getRequest()->get('tab_id', null),
+            $this->requestStack->getCurrentRequest()->get('tab_id', null),
 			$positionChangeMode,
 			$positionValue
 		);
 	}
 
-	protected function performAdditionalUpdatePositionAction($positionChangeEvent)
+    #[Route('/update-position', name: 'update_position')]
+    protected function performAdditionalUpdatePositionAction($positionChangeEvent)
 	{
 		return $this->redirectToListTemplate();
 	}

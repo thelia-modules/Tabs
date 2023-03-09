@@ -24,11 +24,19 @@
 namespace Tabs\Controller;
 
 use Propel\Runtime\Exception\PropelException;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Form\FormFactoryBuilderInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Csrf\TokenStorage\TokenStorageInterface;
+use Symfony\Component\Validator\ValidatorBuilder;
 use Tabs\Controller\Base\BaseTabsController;
 use Tabs\Event\TabsEvent;
 use Tabs\Form\TabsContentForm;
 use Tabs\Model\ContentAssociatedTabQuery;
 use Thelia\Core\Security\AccessManager;
+use Thelia\Core\Template\ParserContext;
+use Thelia\Core\Translation\Translator;
 use Thelia\Form\Exception\FormValidationException;
 use Thelia\Model\ContentQuery;
 
@@ -36,34 +44,89 @@ use Thelia\Model\ContentQuery;
  * Class ContentTabsController
  * @package Tabs\Controller
  * @author Michaël Espeche <mespeche@openstudio.fr>
+ * @Route("/admin/content", name="tabs_content_")
  */
 class ContentTabsController extends BaseTabsController
 {
-	public function __construct()
+	public function __construct(
+        RequestStack $requestStack,
+        EventDispatcherInterface $eventDispatcher,
+        Translator $translator,
+        FormFactoryBuilderInterface $formFactoryBuilder,
+        ValidatorBuilder $validationBuilder,
+        TokenStorageInterface $tokenStorage
+    )
 	{
-		parent::__construct();
+		parent::__construct(
+            $requestStack,
+            $eventDispatcher,
+            $translator,
+            $formFactoryBuilder,
+            $validationBuilder,
+            $tokenStorage
+        );
 	}
 
-	public function manageTabsContentAssociation($contentId)
-	{
+    #[Route('/update/{contentId}/tabs', name: 'manage_tabs_content')]
+	public function manageTabsContentAssociation(
+        RequestStack $requestStack,
+        EventDispatcherInterface $eventDispatcher,
+        Translator $translator,
+        FormFactoryBuilderInterface $formFactoryBuilder,
+        ValidatorBuilder $validationBuilder,
+        TokenStorageInterface $tokenStorage,
+        ParserContext $parserContext,
+        $contentId
+    ){
 
 		if (null !== $response = $this->checkAuth(array(), array('Tabs'), AccessManager::UPDATE)) {
 			return $response;
 		}
 
-		$tabId = $this->getRequest()->get('tab_id', null);
+		$tabId = $requestStack->getCurrentRequest()->get('tab_id', null);
 		if (null === $tabId) {
-			return $this->createNewTabContentAssociation($contentId);
-		} else {
-			return $this->updateTabContentAssociation($tabId);
+			return $this->createNewTabContentAssociation(
+                $requestStack,
+                $eventDispatcher,
+                $translator,
+                $formFactoryBuilder,
+                $validationBuilder,
+                $tokenStorage,
+                $parserContext,
+                $contentId);
 		}
-
+        return $this->updateTabContentAssociation(
+            $requestStack,
+            $eventDispatcher,
+            $translator,
+            $formFactoryBuilder,
+            $validationBuilder,
+            $tokenStorage,
+            $parserContext,
+            $tabId
+        );
 	}
 
-	public function createNewTabContentAssociation($contentId)
+	public function createNewTabContentAssociation(
+        RequestStack $requestStack,
+        EventDispatcherInterface $eventDispatcher,
+        Translator $translator,
+        FormFactoryBuilderInterface $formFactoryBuilder,
+        ValidatorBuilder $validationBuilder,
+        TokenStorageInterface $tokenStorage,
+        ParserContext $parserContext,
+        $contentId)
 	{
 
-		$tabsContentForm = new TabsContentForm($this->getRequest());
+		$tabsContentForm = new TabsContentForm(
+            $requestStack->getCurrentRequest(),
+            $eventDispatcher,
+            $translator,
+            $formFactoryBuilder,
+            $validationBuilder,
+            $tokenStorage,
+            $contentId
+        );
 
 		$message = false;
 
@@ -79,7 +142,7 @@ class ContentTabsController extends BaseTabsController
 			$event = $this->createEventInstance($form->getData());
 			$event->setContentId($content->getId());
 
-			$this->dispatch(TabsEvent::TABS_CONTENT_CREATE, $event);
+            $eventDispatcher->dispatch($event, TabsEvent::TABS_CONTENT_CREATE);
 
 			return $this->generateSuccessRedirect($tabsContentForm);
 
@@ -96,18 +159,34 @@ class ContentTabsController extends BaseTabsController
 
 			$tabsContentForm->setErrorMessage($message);
 
-			$this->getParserContext()
+			$parserContext
 				->addForm($tabsContentForm)
 				->setGeneralError($message);
 		}
 
-		return $this->updateAction();
+		return $this->updateAction($parserContext);
 	}
 
-	public function updateTabContentAssociation($tabId)
+	public function updateTabContentAssociation(
+        RequestStack $requestStack,
+        EventDispatcherInterface $eventDispatcher,
+        Translator $translator,
+        FormFactoryBuilderInterface $formFactoryBuilder,
+        ValidatorBuilder $validationBuilder,
+        TokenStorageInterface $tokenStorage,
+        ParserContext $parserContext,
+        $tabId)
 	{
 
-		$tabsContentForm = new TabsContentForm($this->getRequest());
+		$tabsContentForm = new TabsContentForm(
+            $requestStack->getCurrentRequest(),
+            $eventDispatcher,
+            $translator,
+            $formFactoryBuilder,
+            $validationBuilder,
+            $tokenStorage,
+            $tabId
+        );
 
 		$message = false;
 
@@ -124,7 +203,7 @@ class ContentTabsController extends BaseTabsController
 			$event->setTabId($tab->getId());
 			$event->setContentId($tab->getContentId());
 
-			$this->dispatch(TabsEvent::TABS_CONTENT_UPDATE, $event);
+            $eventDispatcher->dispatch($event, TabsEvent::TABS_CONTENT_UPDATE);
 
 			return $this->generateSuccessRedirect($tabsContentForm);
 
@@ -141,12 +220,11 @@ class ContentTabsController extends BaseTabsController
 
 			$tabsContentForm->setErrorMessage($message);
 
-			$this->getParserContext()
+			$parserContext
 				->addForm($tabsContentForm)
 				->setGeneralError($message);
 		}
 
-		return $this->updateAction();
-
+		return $this->updateAction($parserContext);
 	}
 }

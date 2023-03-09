@@ -14,7 +14,7 @@ class TabsFolderForm extends TabsContentForm
         parent::buildForm();
     }
 
-    public function getName()
+    public static function getName()
     {
         return 'tabs_folder';
     }

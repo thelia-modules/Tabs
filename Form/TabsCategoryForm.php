@@ -14,7 +14,7 @@ class TabsCategoryForm extends TabsContentForm
         parent::buildForm();
     }
 
-    public function getName()
+    public static function getName()
     {
         return 'tabs_category';
     }

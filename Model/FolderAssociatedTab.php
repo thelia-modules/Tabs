@@ -3,7 +3,6 @@
 namespace Tabs\Model;
 
 use Tabs\Model\Base\FolderAssociatedTab as BaseFolderAssociatedTab;
-use Thelia\Model\Tools\ModelEventDispatcherTrait;
 use Thelia\Model\Tools\PositionManagementTrait;
 
 /**
@@ -19,5 +18,4 @@ use Thelia\Model\Tools\PositionManagementTrait;
 class FolderAssociatedTab extends BaseFolderAssociatedTab
 {
 	use PositionManagementTrait;
-	use ModelEventDispatcherTrait;
 }

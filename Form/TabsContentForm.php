@@ -2,6 +2,8 @@
 namespace Tabs\Form;
 
 
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Thelia\Core\Translation\Translator;
 use Thelia\Form\BaseForm;
@@ -12,38 +14,50 @@ class TabsContentForm extends BaseForm{
     {
 
         $this->formBuilder
-            ->add('title', 'text', array(
-                    'constraints' => array(
+            ->add(
+                'title',
+                TextType::class,
+                [
+                    'constraints' => [
                         new NotBlank()
-                    ),
+                    ],
                     'label' => Translator::getInstance()->trans('Title'),
-                    'label_attr' => array(
+                    'label_attr' => [
                         'for' => 'tabs_title'
-                    )
-                ))
-            ->add('description', 'text', array(
-                    'constraints' => array(
+                    ]
+                ])
+            ->add(
+                'description',
+                TextType::class,
+                [
+                    'constraints' => [
                         new NotBlank()
-                    ),
+                    ],
                     'label' => Translator::getInstance()->trans('Description'),
-                    'label_attr' => array(
+                    'label_attr' => [
                         'for' => 'tabs_description'
-                    )
-                ))
-            ->add('visible', 'integer', array(
+                    ]
+                ])
+            ->add(
+                'visible',
+                IntegerType::class,
+                [
                     'label' => Translator::getInstance()->trans('Visible ?'),
-                    'label_attr' => array(
+                    'label_attr' => [
                         'for' => 'tabs_visible'
-                    )
-                ))
-            ->add("locale", "text", array(
-                    "constraints" => array(
+                    ]
+                ])
+            ->add(
+                "locale",
+                TextType::class,
+                [
+                    "constraints" => [
                         new NotBlank()
-                    )
-                ));
+                    ]
+                ]);
     }
 
-    public function getName()
+    public static function getName()
     {
         return 'tabs_content';
     }
