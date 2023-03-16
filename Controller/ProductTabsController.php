@@ -44,8 +44,8 @@ use Thelia\Model\ProductQuery;
  * Class ProductTabsController
  * @package Tabs\Controller
  * @author Michaël Espeche <mespeche@openstudio.fr>
- * @Route("/admin/product", name="tabs_product_")
  */
+#[Route('/admin/product', name: 'tabs_product_')]
 class ProductTabsController extends BaseTabsController
 {
     public function __construct(RequestStack $requestStack,

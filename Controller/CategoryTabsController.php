@@ -44,8 +44,8 @@ use Thelia\Model\CategoryQuery;
  * Class CategoryTabsController
  * @package Tabs\Controller
  * @author Michaël Espeche <mespeche@openstudio.fr>
- * @Route("/admin/category", name="tabs_category_")
  */
+#[Route('/admin/category', name: 'tabs_category_')]
 class CategoryTabsController extends BaseTabsController
 {
 	public function __construct(

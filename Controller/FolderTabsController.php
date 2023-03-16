@@ -44,8 +44,8 @@ use Thelia\Model\FolderQuery;
  * Class FolderTabsController
  * @package Tabs\Controller
  * @author Michaël Espeche <mespeche@openstudio.fr>
- * @Route("/admin/folder", name="tabs_folder_")
  */
+#[Route('/admin/folder', name: 'tabs_folder_')]
 class FolderTabsController extends BaseTabsController
 {
 	public function __construct(RequestStack $requestStack,

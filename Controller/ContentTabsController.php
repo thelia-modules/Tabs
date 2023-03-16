@@ -24,12 +24,12 @@
 namespace Tabs\Controller;
 
 use Propel\Runtime\Exception\PropelException;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Form\FormFactoryBuilderInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Csrf\TokenStorage\TokenStorageInterface;
 use Symfony\Component\Validator\ValidatorBuilder;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tabs\Controller\Base\BaseTabsController;
 use Tabs\Event\TabsEvent;
 use Tabs\Form\TabsContentForm;
@@ -44,8 +44,8 @@ use Thelia\Model\ContentQuery;
  * Class ContentTabsController
  * @package Tabs\Controller
  * @author Michaël Espeche <mespeche@openstudio.fr>
- * @Route("/admin/content", name="tabs_content_")
  */
+#[Route('/admin/content', name: 'tabs_content_')]
 class ContentTabsController extends BaseTabsController
 {
 	public function __construct(
