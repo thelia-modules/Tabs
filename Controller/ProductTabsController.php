@@ -25,18 +25,14 @@ namespace Tabs\Controller;
 
 use Propel\Runtime\Exception\PropelException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\Form\FormFactoryBuilderInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Csrf\TokenStorage\TokenStorageInterface;
-use Symfony\Component\Validator\ValidatorBuilder;
 use Tabs\Controller\Base\BaseTabsController;
 use Tabs\Event\TabsEvent;
 use Tabs\Form\TabsProductForm;
 use Tabs\Model\ProductAssociatedTabQuery;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Template\ParserContext;
-use Thelia\Core\Translation\Translator;
 use Thelia\Form\Exception\FormValidationException;
 use Thelia\Model\ProductQuery;
 
@@ -48,31 +44,10 @@ use Thelia\Model\ProductQuery;
 #[Route('/admin/product', name: 'tabs_product_')]
 class ProductTabsController extends BaseTabsController
 {
-    public function __construct(RequestStack $requestStack,
-        EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage
-    ) {
-        parent::__construct(
-            $requestStack,
-            $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage
-        );
-    }
-
     #[Route('/update/{productId}/tabs', name: 'manage_tabs_product')]
 	public function manageTabsProductAssociation(
         RequestStack $requestStack,
         EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage,
         ParserContext $parserContext,
         $productId)
 	{
@@ -85,47 +60,25 @@ class ProductTabsController extends BaseTabsController
 
 		if (null === $tabId) {
 			return $this->createNewTabProductAssociation(
-                $requestStack,
                 $eventDispatcher,
-                $translator,
-                $formFactoryBuilder,
-                $validationBuilder,
-                $tokenStorage,
                 $parserContext,
                 $productId
             );
 		}
         return $this->updateTabProductAssociation(
-            $requestStack,
             $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage,
             $parserContext,
             $tabId
         );
 	}
 
 	public function createNewTabProductAssociation(
-        RequestStack $requestStack,
         EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage,
         ParserContext $parserContext,
-        $productId)
-	{
+        $productId
+    ) {
 
-		$tabsProductForm = new TabsProductForm(
-            $requestStack->getCurrentRequest(),
-            $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage
-        );
+		$tabsProductForm = $this->createForm(TabsProductForm::getName());
 
 		$message = false;
 
@@ -166,24 +119,11 @@ class ProductTabsController extends BaseTabsController
 	}
 
 	public function updateTabProductAssociation(
-        RequestStack $requestStack,
         EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage,
         ParserContext $parserContext,
         $tabId
     ) {
-
-		$tabsProductForm = new TabsProductForm(
-            $requestStack->getCurrentRequest(),
-            $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage
-        );
+		$tabsProductForm = $this->createForm(TabsProductForm::getName());
 
 		$message = false;
 

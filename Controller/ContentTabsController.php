@@ -48,33 +48,10 @@ use Thelia\Model\ContentQuery;
 #[Route('/admin/content', name: 'tabs_content_')]
 class ContentTabsController extends BaseTabsController
 {
-	public function __construct(
-        RequestStack $requestStack,
-        EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage
-    )
-	{
-		parent::__construct(
-            $requestStack,
-            $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage
-        );
-	}
-
     #[Route('/update/{contentId}/tabs', name: 'manage_tabs_content')]
 	public function manageTabsContentAssociation(
         RequestStack $requestStack,
         EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage,
         ParserContext $parserContext,
         $contentId
     ){
@@ -86,47 +63,24 @@ class ContentTabsController extends BaseTabsController
 		$tabId = $requestStack->getCurrentRequest()->get('tab_id', null);
 		if (null === $tabId) {
 			return $this->createNewTabContentAssociation(
-                $requestStack,
                 $eventDispatcher,
-                $translator,
-                $formFactoryBuilder,
-                $validationBuilder,
-                $tokenStorage,
                 $parserContext,
-                $contentId);
+                $contentId
+            );
 		}
         return $this->updateTabContentAssociation(
-            $requestStack,
             $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage,
             $parserContext,
             $tabId
         );
 	}
 
 	public function createNewTabContentAssociation(
-        RequestStack $requestStack,
         EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage,
         ParserContext $parserContext,
-        $contentId)
-	{
-
-		$tabsContentForm = new TabsContentForm(
-            $requestStack->getCurrentRequest(),
-            $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage,
-            $contentId
-        );
+        $contentId
+    ) {
+		$tabsContentForm = $this->createForm(TabsContentForm::getName());
 
 		$message = false;
 
@@ -168,25 +122,12 @@ class ContentTabsController extends BaseTabsController
 	}
 
 	public function updateTabContentAssociation(
-        RequestStack $requestStack,
         EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage,
         ParserContext $parserContext,
-        $tabId)
-	{
+        $tabId
+    ) {
 
-		$tabsContentForm = new TabsContentForm(
-            $requestStack->getCurrentRequest(),
-            $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage,
-            $tabId
-        );
+		$tabsContentForm = $this->createForm(TabsContentForm::getName());
 
 		$message = false;
 

@@ -25,18 +25,14 @@ namespace Tabs\Controller;
 
 use Propel\Runtime\Exception\PropelException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\Form\FormFactoryBuilderInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Csrf\TokenStorage\TokenStorageInterface;
-use Symfony\Component\Validator\ValidatorBuilder;
 use Tabs\Controller\Base\BaseTabsController;
 use Tabs\Event\TabsEvent;
 use Tabs\Form\TabsFolderForm;
 use Tabs\Model\FolderAssociatedTabQuery;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Template\ParserContext;
-use Thelia\Core\Translation\Translator;
 use Thelia\Form\Exception\FormValidationException;
 use Thelia\Model\FolderQuery;
 
@@ -48,31 +44,10 @@ use Thelia\Model\FolderQuery;
 #[Route('/admin/folder', name: 'tabs_folder_')]
 class FolderTabsController extends BaseTabsController
 {
-	public function __construct(RequestStack $requestStack,
-        EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage
-    ){
-        parent::__construct(
-            $requestStack,
-            $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage
-        );
-	}
-
     #[Route('/update/{folderId}/tabs', name: 'manage_tabs_folder')]
     public function manageTabsFolderAssociation(
         RequestStack $requestStack,
         EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage,
         ParserContext $parserContext,
         $folderId
     ) {
@@ -84,47 +59,24 @@ class FolderTabsController extends BaseTabsController
 		$tabId = $requestStack->getCurrentRequest()->get('tab_id', null);
 		if (null === $tabId) {
 			return $this->createNewTabFolderAssociation(
-                $requestStack,
                 $eventDispatcher,
-                $translator,
-                $formFactoryBuilder,
-                $validationBuilder,
-                $tokenStorage,
                 $parserContext,
                 $folderId
             );
 		}
         return $this->updateTabFolderAssociation(
-            $requestStack,
             $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage,
             $parserContext,
             $tabId
         );
 	}
 
 	public function createNewTabFolderAssociation(
-        RequestStack $requestStack,
         EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage,
         ParserContext $parserContext,
         $folderId
     ) {
-
-		$tabsFolderForm = new TabsFolderForm(
-            $requestStack->getCurrentRequest(),
-            $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage
-        );
+		$tabsFolderForm = $this->createForm(TabsFolderForm::getName());
 
 		$message = false;
 
@@ -166,23 +118,11 @@ class FolderTabsController extends BaseTabsController
 	}
 
 	public function updateTabFolderAssociation(
-        RequestStack $requestStack,
         EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage,
         ParserContext $parserContext,
         $tabId
     ) {
-
-		$tabsFolderForm = new TabsFolderForm(
-            $requestStack->getCurrentRequest(),
-            $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage);
+		$tabsFolderForm = $this->createForm(TabsFolderForm::getName());
 
 		$message = false;
 
@@ -222,6 +162,5 @@ class FolderTabsController extends BaseTabsController
 		}
 
 		return $this->updateAction($parserContext);
-
 	}
 }

@@ -23,14 +23,10 @@
 
 namespace Tabs\Controller\Base;
 
-use Symfony\Component\Form\FormFactoryBuilderInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Security\Csrf\TokenStorage\TokenStorageInterface;
-use Symfony\Component\Validator\ValidatorBuilder;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tabs\Event\TabsDeleteEvent;
 use Tabs\Event\TabsEvent;
 use Tabs\Model\ProductAssociatedTab;
@@ -38,7 +34,6 @@ use Tabs\Model\ProductAssociatedTabQuery;
 use Thelia\Controller\Admin\AbstractCrudController;
 use Thelia\Core\Event\UpdatePositionEvent;
 use Thelia\Core\Template\ParserContext;
-use Thelia\Core\Translation\Translator;
 use Thelia\Form\CategoryModificationForm;
 use Thelia\Form\ContentModificationForm;
 use Thelia\Form\FolderModificationForm;
@@ -61,18 +56,9 @@ class BaseTabsController extends AbstractCrudController
 	static $possibleVars = [ 'product_id', 'category_id', 'content_id', 'folder_id'];
 
     private Request $request;
-    private EventDispatcherInterface $eventDispatcher;
-    private FormFactoryBuilderInterface $formFactoryBuilder;
-    private ValidatorBuilder $validationBuilder;
-    private TokenStorageInterface $tokenStorage;
 
 	public function __construct(
         RequestStack $requestStack,
-        EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage
     ){
 		parent::__construct(
 			'tabs',
@@ -88,11 +74,6 @@ class BaseTabsController extends AbstractCrudController
 		);
 
         $this->request = $requestStack->getCurrentRequest();
-        $this->eventDispatcher = $eventDispatcher;
-        $this->formFactoryBuilder = $formFactoryBuilder;
-        $this->validationBuilder = $validationBuilder;
-        $this->translator = $translator;
-        $this->tokenStorage = $tokenStorage;
 	}
 
     #[Route('', name: 'config')]
@@ -185,50 +166,22 @@ class BaseTabsController extends AbstractCrudController
 		// Get type of association to hydrate the correct modification form
 		if ($object->type === 'content') {
 			// Setup the object form
-			return new ContentModificationForm(
-                $this->request,
-                $this->eventDispatcher,
-                $this->translator,
-                $this->formFactoryBuilder,
-                $this->validationBuilder,
-                $this->tokenStorage
-            );
+            return $this->createForm(ContentModificationForm::getName());
 		}
 
 		if ($object->type === 'product') {
 			// Setup the object form
-			return new ProductModificationForm(
-                $this->request,
-                $this->eventDispatcher,
-                $this->translator,
-                $this->formFactoryBuilder,
-                $this->validationBuilder,
-                $this->tokenStorage
-            );
+            return $this->createForm(ProductModificationForm::getName());
 		}
 
 		if ($object->type === 'category') {
 			// Setup the object form
-			return new CategoryModificationForm(
-                $this->request,
-                $this->eventDispatcher,
-                $this->translator,
-                $this->formFactoryBuilder,
-                $this->validationBuilder,
-                $this->tokenStorage
-            );
+            return $this->createForm(CategoryModificationForm::getName());
 		}
 
 		if ($object->type === 'folder') {
 			// Setup the object form
-			return new FolderModificationForm(
-                $this->request,
-                $this->eventDispatcher,
-                $this->translator,
-                $this->formFactoryBuilder,
-                $this->validationBuilder,
-                $this->tokenStorage
-            );
+            return $this->createForm(FolderModificationForm::getName());
 		}
 	}
 

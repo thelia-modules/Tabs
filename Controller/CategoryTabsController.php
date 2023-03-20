@@ -25,18 +25,14 @@ namespace Tabs\Controller;
 
 use Propel\Runtime\Exception\PropelException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\Form\FormFactoryBuilderInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Csrf\TokenStorage\TokenStorageInterface;
-use Symfony\Component\Validator\ValidatorBuilder;
 use Tabs\Controller\Base\BaseTabsController;
 use Tabs\Event\TabsEvent;
 use Tabs\Form\TabsCategoryForm;
 use Tabs\Model\CategoryAssociatedTabQuery;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Template\ParserContext;
-use Thelia\Core\Translation\Translator;
 use Thelia\Form\Exception\FormValidationException;
 use Thelia\Model\CategoryQuery;
 
@@ -48,35 +44,13 @@ use Thelia\Model\CategoryQuery;
 #[Route('/admin/category', name: 'tabs_category_')]
 class CategoryTabsController extends BaseTabsController
 {
-	public function __construct(
-        RequestStack $requestStack,
-        EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage
-    ){
-		parent::__construct(
-            $requestStack,
-            $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage
-        );
-	}
-
     #[Route('/update/{categoryId}/tabs', name: 'manage_tabs_category')]
 	public function manageTabsCategoryAssociation(
         RequestStack $requestStack,
         EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage,
         ParserContext $parserContext,
-        $categoryId)
-	{
+        $categoryId
+    ) {
 
 		if (null !== $response = $this->checkAuth(array(), array('Tabs'), AccessManager::UPDATE)) {
 			return $response;
@@ -85,46 +59,24 @@ class CategoryTabsController extends BaseTabsController
 		$tabId = $requestStack->getCurrentRequest()->get('tab_id', null);
 		if (null === $tabId) {
 			return $this->createNewTabCategoryAssociation(
-                $requestStack,
                 $eventDispatcher,
-                $translator,
-                $formFactoryBuilder,
-                $validationBuilder,
-                $tokenStorage,
                 $parserContext,
                 $categoryId);
 		}
         return $this->updateTabCategoryAssociation(
-            $requestStack,
             $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage,
             $parserContext,
             $tabId
         );
 	}
 
 	public function createNewTabCategoryAssociation(
-        RequestStack $requestStack,
         EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage,
         ParserContext $parserContext,
-        $categoryId)
-	{
+        $categoryId
+    ) {
 
-		$tabsCategoryForm = new TabsCategoryForm(
-            $requestStack->getCurrentRequest(),
-            $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage
-        );
+        $tabsCategoryForm = $this->createForm(TabsCategoryForm::getName());
 
 		$message = false;
 
@@ -166,24 +118,12 @@ class CategoryTabsController extends BaseTabsController
 	}
 
 	public function updateTabCategoryAssociation(
-        RequestStack $requestStack,
         EventDispatcherInterface $eventDispatcher,
-        Translator $translator,
-        FormFactoryBuilderInterface $formFactoryBuilder,
-        ValidatorBuilder $validationBuilder,
-        TokenStorageInterface $tokenStorage,
         ParserContext $parserContext,
         $tabId)
 	{
 
-		$tabsCategoryForm = new TabsCategoryForm(
-            $requestStack->getCurrentRequest(),
-            $eventDispatcher,
-            $translator,
-            $formFactoryBuilder,
-            $validationBuilder,
-            $tokenStorage
-        );
+		$tabsCategoryForm = $this->createForm(TabsCategoryForm::getName());
 
 		$message = false;
 
