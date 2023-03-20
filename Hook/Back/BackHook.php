@@ -7,21 +7,16 @@ use Tabs\Tabs;
 use Thelia\Core\Event\Hook\HookRenderBlockEvent;
 use Thelia\Core\Event\Hook\HookRenderEvent;
 use Thelia\Core\Hook\BaseHook;
+use Thelia\Tools\URL;
 
 /**
  * Back-office hooks.
  */
 class BackHook extends BaseHook
 {
-    /** @var RouterInterface */
-    protected $router;
-
-    /**
-     * @param RouterInterface $router
-     */
-    public function __construct(RouterInterface $router)
+    public function __construct()
     {
-        $this->router = $router;
+        parent::__construct();
     }
 
     /**
@@ -32,7 +27,7 @@ class BackHook extends BaseHook
     {
         $event->add([
             'title' => $this->trans('Tabs options', [], Tabs::MESSAGE_DOMAIN_BO),
-            'url' => $this->router->generate('tabs.config'),
+            'url' => URL::getInstance()->absoluteUrl('/admin/module/tags'),
         ]);
     }
 

@@ -24,11 +24,15 @@
 namespace Tabs\Controller;
 
 use Propel\Runtime\Exception\PropelException;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Annotation\Route;
 use Tabs\Controller\Base\BaseTabsController;
 use Tabs\Event\TabsEvent;
 use Tabs\Form\TabsProductForm;
 use Tabs\Model\ProductAssociatedTabQuery;
 use Thelia\Core\Security\AccessManager;
+use Thelia\Core\Template\ParserContext;
 use Thelia\Form\Exception\FormValidationException;
 use Thelia\Model\ProductQuery;
 
@@ -37,33 +41,44 @@ use Thelia\Model\ProductQuery;
  * @package Tabs\Controller
  * @author Michaël Espeche <mespeche@openstudio.fr>
  */
+#[Route('/admin/product', name: 'tabs_product_')]
 class ProductTabsController extends BaseTabsController
 {
-	public function __construct()
-	{
-		parent::__construct();
-	}
-
-	public function manageTabsProductAssociation($productId)
+    #[Route('/update/{productId}/tabs', name: 'manage_tabs_product')]
+	public function manageTabsProductAssociation(
+        RequestStack $requestStack,
+        EventDispatcherInterface $eventDispatcher,
+        ParserContext $parserContext,
+        $productId)
 	{
 
 		if (null !== $response = $this->checkAuth(array(), array('Tabs'), AccessManager::UPDATE)) {
 			return $response;
 		}
 
-		$tabId = $this->getRequest()->get('tab_id', null);
-		if (null === $tabId) {
-			return $this->createNewTabProductAssociation($productId);
-		} else {
-			return $this->updateTabProductAssociation($tabId);
-		}
+		$tabId = $requestStack->getCurrentRequest()->get('tab_id', null);
 
+		if (null === $tabId) {
+			return $this->createNewTabProductAssociation(
+                $eventDispatcher,
+                $parserContext,
+                $productId
+            );
+		}
+        return $this->updateTabProductAssociation(
+            $eventDispatcher,
+            $parserContext,
+            $tabId
+        );
 	}
 
-	public function createNewTabProductAssociation($productId)
-	{
+	public function createNewTabProductAssociation(
+        EventDispatcherInterface $eventDispatcher,
+        ParserContext $parserContext,
+        $productId
+    ) {
 
-		$tabsProductForm = new TabsProductForm($this->getRequest());
+		$tabsProductForm = $this->createForm(TabsProductForm::getName());
 
 		$message = false;
 
@@ -79,7 +94,7 @@ class ProductTabsController extends BaseTabsController
 			$event = $this->createEventInstance($form->getData());
 			$event->setProductId($product->getId());
 
-			$this->dispatch(TabsEvent::TABS_PRODUCT_CREATE, $event);
+            $eventDispatcher->dispatch($event, TabsEvent::TABS_PRODUCT_CREATE);
 
 			return $this->generateSuccessRedirect($tabsProductForm);
 		} catch (FormValidationException $e) {
@@ -95,18 +110,20 @@ class ProductTabsController extends BaseTabsController
 
 			$tabsProductForm->setErrorMessage($message);
 
-			$this->getParserContext()
+			$parserContext
 				->addForm($tabsProductForm)
 				->setGeneralError($message);
 		}
 
-		return $this->updateAction();
+		return $this->updateAction($parserContext);
 	}
 
-	public function updateTabProductAssociation($tabId)
-	{
-
-		$tabsProductForm = new TabsProductForm($this->getRequest());
+	public function updateTabProductAssociation(
+        EventDispatcherInterface $eventDispatcher,
+        ParserContext $parserContext,
+        $tabId
+    ) {
+		$tabsProductForm = $this->createForm(TabsProductForm::getName());
 
 		$message = false;
 
@@ -123,7 +140,7 @@ class ProductTabsController extends BaseTabsController
 			$event->setTabId($tab->getId());
 			$event->setProductId($tab->getProductId());
 
-			$this->dispatch(TabsEvent::TABS_PRODUCT_UPDATE, $event);
+            $eventDispatcher->dispatch($event, TabsEvent::TABS_PRODUCT_UPDATE);
 
 			return $this->generateSuccessRedirect($tabsProductForm);
 		} catch (FormValidationException $e) {
@@ -139,12 +156,11 @@ class ProductTabsController extends BaseTabsController
 
 			$tabsProductForm->setErrorMessage($message);
 
-			$this->getParserContext()
+			$parserContext
 				->addForm($tabsProductForm)
 				->setGeneralError($message);
 		}
 
-		return $this->updateAction();
-
+		return $this->updateAction($parserContext);
 	}
 }

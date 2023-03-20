@@ -9,10 +9,10 @@
     </loops>
 
     <forms>
-        <form name="tabs.admin.content" class="Tabs\Form\TabsContentForm"/>
-        <form name="tabs.admin.product" class="Tabs\Form\TabsProductForm"/>
-        <form name="tabs.admin.category" class="Tabs\Form\TabsCategoryForm"/>
-        <form name="tabs.admin.folder" class="Tabs\Form\TabsFolderForm"/>
+        <form name="tabs_admin_content" class="Tabs\Form\TabsContentForm"/>
+        <form name="tabs_admin_product" class="Tabs\Form\TabsProductForm"/>
+        <form name="tabs_admin_category" class="Tabs\Form\TabsCategoryForm"/>
+        <form name="tabs_admin_folder" class="Tabs\Form\TabsFolderForm"/>
     </forms>
 
     <hooks>
@@ -23,20 +23,7 @@
             <tag name="hook.event_listener" type="backoffice" event="folder.tab-content"/>
             <tag name="hook.event_listener" type="backoffice" event="content.tab-content"/>
             <tag name="hook.event_listener" type="backoffice" event="main.footer-js"/>
-            <argument type="service" id="router.tabs"/>
         </hook>
     </hooks>
-
-    <services>
-        <service id="tabs.action" class="Tabs\Action\Tabs">
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service id="smarty.plugin.tabs" class="Tabs\Smarty\Plugins\TabsPlugin">
-            <tag name="thelia.parser.register_plugin"/>
-            <argument type="service" id="thelia.securityContext" />
-            <argument type="service" id="thelia.template_helper" />
-        </service>
-    </services>
 
 </config>

@@ -24,11 +24,15 @@
 namespace Tabs\Controller;
 
 use Propel\Runtime\Exception\PropelException;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Annotation\Route;
 use Tabs\Controller\Base\BaseTabsController;
 use Tabs\Event\TabsEvent;
 use Tabs\Form\TabsFolderForm;
 use Tabs\Model\FolderAssociatedTabQuery;
 use Thelia\Core\Security\AccessManager;
+use Thelia\Core\Template\ParserContext;
 use Thelia\Form\Exception\FormValidationException;
 use Thelia\Model\FolderQuery;
 
@@ -37,33 +41,42 @@ use Thelia\Model\FolderQuery;
  * @package Tabs\Controller
  * @author Michaël Espeche <mespeche@openstudio.fr>
  */
+#[Route('/admin/folder', name: 'tabs_folder_')]
 class FolderTabsController extends BaseTabsController
 {
-	public function __construct()
-	{
-		parent::__construct();
-	}
-
-	public function manageTabsFolderAssociation($folderId)
-	{
+    #[Route('/update/{folderId}/tabs', name: 'manage_tabs_folder')]
+    public function manageTabsFolderAssociation(
+        RequestStack $requestStack,
+        EventDispatcherInterface $eventDispatcher,
+        ParserContext $parserContext,
+        $folderId
+    ) {
 
 		if (null !== $response = $this->checkAuth(array(), array('Tabs'), AccessManager::UPDATE)) {
 			return $response;
 		}
 
-		$tabId = $this->getRequest()->get('tab_id', null);
+		$tabId = $requestStack->getCurrentRequest()->get('tab_id', null);
 		if (null === $tabId) {
-			return $this->createNewTabFolderAssociation($folderId);
-		} else {
-			return $this->updateTabFolderAssociation($tabId);
+			return $this->createNewTabFolderAssociation(
+                $eventDispatcher,
+                $parserContext,
+                $folderId
+            );
 		}
-
+        return $this->updateTabFolderAssociation(
+            $eventDispatcher,
+            $parserContext,
+            $tabId
+        );
 	}
 
-	public function createNewTabFolderAssociation($folderId)
-	{
-
-		$tabsFolderForm = new TabsFolderForm($this->getRequest());
+	public function createNewTabFolderAssociation(
+        EventDispatcherInterface $eventDispatcher,
+        ParserContext $parserContext,
+        $folderId
+    ) {
+		$tabsFolderForm = $this->createForm(TabsFolderForm::getName());
 
 		$message = false;
 
@@ -79,7 +92,7 @@ class FolderTabsController extends BaseTabsController
 			$event = $this->createEventInstance($form->getData());
 			$event->setFolderId($folder->getId());
 
-			$this->dispatch(TabsEvent::TABS_FOLDER_CREATE, $event);
+            $eventDispatcher->dispatch($event, TabsEvent::TABS_FOLDER_CREATE);
 
 			return $this->generateSuccessRedirect($tabsFolderForm);
 
@@ -96,18 +109,20 @@ class FolderTabsController extends BaseTabsController
 
 			$tabsFolderForm->setErrorMessage($message);
 
-			$this->getParserContext()
+			$parserContext
 				->addForm($tabsFolderForm)
 				->setGeneralError($message);
 		}
 
-		return $this->updateAction();
+		return $this->updateAction($parserContext);
 	}
 
-	public function updateTabFolderAssociation($tabId)
-	{
-
-		$tabsFolderForm = new TabsFolderForm($this->getRequest());
+	public function updateTabFolderAssociation(
+        EventDispatcherInterface $eventDispatcher,
+        ParserContext $parserContext,
+        $tabId
+    ) {
+		$tabsFolderForm = $this->createForm(TabsFolderForm::getName());
 
 		$message = false;
 
@@ -124,7 +139,7 @@ class FolderTabsController extends BaseTabsController
 			$event->setTabId($tab->getId());
 			$event->setFolderId($tab->getFolderId());
 
-			$this->dispatch(TabsEvent::TABS_FOLDER_UPDATE, $event);
+            $eventDispatcher->dispatch($event, TabsEvent::TABS_FOLDER_UPDATE);
 
 			return $this->generateSuccessRedirect($tabsFolderForm);
 
@@ -141,12 +156,11 @@ class FolderTabsController extends BaseTabsController
 
 			$tabsFolderForm->setErrorMessage($message);
 
-			$this->getParserContext()
+			$parserContext
 				->addForm($tabsFolderForm)
 				->setGeneralError($message);
 		}
 
-		return $this->updateAction();
-
+		return $this->updateAction($parserContext);
 	}
 }

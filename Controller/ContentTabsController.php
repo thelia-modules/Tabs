@@ -24,11 +24,19 @@
 namespace Tabs\Controller;
 
 use Propel\Runtime\Exception\PropelException;
+use Symfony\Component\Form\FormFactoryBuilderInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Csrf\TokenStorage\TokenStorageInterface;
+use Symfony\Component\Validator\ValidatorBuilder;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Tabs\Controller\Base\BaseTabsController;
 use Tabs\Event\TabsEvent;
 use Tabs\Form\TabsContentForm;
 use Tabs\Model\ContentAssociatedTabQuery;
 use Thelia\Core\Security\AccessManager;
+use Thelia\Core\Template\ParserContext;
+use Thelia\Core\Translation\Translator;
 use Thelia\Form\Exception\FormValidationException;
 use Thelia\Model\ContentQuery;
 
@@ -37,33 +45,42 @@ use Thelia\Model\ContentQuery;
  * @package Tabs\Controller
  * @author Michaël Espeche <mespeche@openstudio.fr>
  */
+#[Route('/admin/content', name: 'tabs_content_')]
 class ContentTabsController extends BaseTabsController
 {
-	public function __construct()
-	{
-		parent::__construct();
-	}
-
-	public function manageTabsContentAssociation($contentId)
-	{
+    #[Route('/update/{contentId}/tabs', name: 'manage_tabs_content')]
+	public function manageTabsContentAssociation(
+        RequestStack $requestStack,
+        EventDispatcherInterface $eventDispatcher,
+        ParserContext $parserContext,
+        $contentId
+    ){
 
 		if (null !== $response = $this->checkAuth(array(), array('Tabs'), AccessManager::UPDATE)) {
 			return $response;
 		}
 
-		$tabId = $this->getRequest()->get('tab_id', null);
+		$tabId = $requestStack->getCurrentRequest()->get('tab_id', null);
 		if (null === $tabId) {
-			return $this->createNewTabContentAssociation($contentId);
-		} else {
-			return $this->updateTabContentAssociation($tabId);
+			return $this->createNewTabContentAssociation(
+                $eventDispatcher,
+                $parserContext,
+                $contentId
+            );
 		}
-
+        return $this->updateTabContentAssociation(
+            $eventDispatcher,
+            $parserContext,
+            $tabId
+        );
 	}
 
-	public function createNewTabContentAssociation($contentId)
-	{
-
-		$tabsContentForm = new TabsContentForm($this->getRequest());
+	public function createNewTabContentAssociation(
+        EventDispatcherInterface $eventDispatcher,
+        ParserContext $parserContext,
+        $contentId
+    ) {
+		$tabsContentForm = $this->createForm(TabsContentForm::getName());
 
 		$message = false;
 
@@ -79,7 +96,7 @@ class ContentTabsController extends BaseTabsController
 			$event = $this->createEventInstance($form->getData());
 			$event->setContentId($content->getId());
 
-			$this->dispatch(TabsEvent::TABS_CONTENT_CREATE, $event);
+            $eventDispatcher->dispatch($event, TabsEvent::TABS_CONTENT_CREATE);
 
 			return $this->generateSuccessRedirect($tabsContentForm);
 
@@ -96,18 +113,21 @@ class ContentTabsController extends BaseTabsController
 
 			$tabsContentForm->setErrorMessage($message);
 
-			$this->getParserContext()
+			$parserContext
 				->addForm($tabsContentForm)
 				->setGeneralError($message);
 		}
 
-		return $this->updateAction();
+		return $this->updateAction($parserContext);
 	}
 
-	public function updateTabContentAssociation($tabId)
-	{
+	public function updateTabContentAssociation(
+        EventDispatcherInterface $eventDispatcher,
+        ParserContext $parserContext,
+        $tabId
+    ) {
 
-		$tabsContentForm = new TabsContentForm($this->getRequest());
+		$tabsContentForm = $this->createForm(TabsContentForm::getName());
 
 		$message = false;
 
@@ -124,7 +144,7 @@ class ContentTabsController extends BaseTabsController
 			$event->setTabId($tab->getId());
 			$event->setContentId($tab->getContentId());
 
-			$this->dispatch(TabsEvent::TABS_CONTENT_UPDATE, $event);
+            $eventDispatcher->dispatch($event, TabsEvent::TABS_CONTENT_UPDATE);
 
 			return $this->generateSuccessRedirect($tabsContentForm);
 
@@ -141,12 +161,11 @@ class ContentTabsController extends BaseTabsController
 
 			$tabsContentForm->setErrorMessage($message);
 
-			$this->getParserContext()
+			$parserContext
 				->addForm($tabsContentForm)
 				->setGeneralError($message);
 		}
 
-		return $this->updateAction();
-
+		return $this->updateAction($parserContext);
 	}
 }

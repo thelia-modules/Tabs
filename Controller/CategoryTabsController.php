@@ -24,11 +24,15 @@
 namespace Tabs\Controller;
 
 use Propel\Runtime\Exception\PropelException;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Annotation\Route;
 use Tabs\Controller\Base\BaseTabsController;
 use Tabs\Event\TabsEvent;
 use Tabs\Form\TabsCategoryForm;
 use Tabs\Model\CategoryAssociatedTabQuery;
 use Thelia\Core\Security\AccessManager;
+use Thelia\Core\Template\ParserContext;
 use Thelia\Form\Exception\FormValidationException;
 use Thelia\Model\CategoryQuery;
 
@@ -37,33 +41,42 @@ use Thelia\Model\CategoryQuery;
  * @package Tabs\Controller
  * @author Michaël Espeche <mespeche@openstudio.fr>
  */
+#[Route('/admin/category', name: 'tabs_category_')]
 class CategoryTabsController extends BaseTabsController
 {
-	public function __construct()
-	{
-		parent::__construct();
-	}
-
-	public function manageTabsCategoryAssociation($categoryId)
-	{
+    #[Route('/update/{categoryId}/tabs', name: 'manage_tabs_category')]
+	public function manageTabsCategoryAssociation(
+        RequestStack $requestStack,
+        EventDispatcherInterface $eventDispatcher,
+        ParserContext $parserContext,
+        $categoryId
+    ) {
 
 		if (null !== $response = $this->checkAuth(array(), array('Tabs'), AccessManager::UPDATE)) {
 			return $response;
 		}
 
-		$tabId = $this->getRequest()->get('tab_id', null);
+		$tabId = $requestStack->getCurrentRequest()->get('tab_id', null);
 		if (null === $tabId) {
-			return $this->createNewTabCategoryAssociation($categoryId);
-		} else {
-			return $this->updateTabCategoryAssociation($tabId);
+			return $this->createNewTabCategoryAssociation(
+                $eventDispatcher,
+                $parserContext,
+                $categoryId);
 		}
-
+        return $this->updateTabCategoryAssociation(
+            $eventDispatcher,
+            $parserContext,
+            $tabId
+        );
 	}
 
-	public function createNewTabCategoryAssociation($categoryId)
-	{
+	public function createNewTabCategoryAssociation(
+        EventDispatcherInterface $eventDispatcher,
+        ParserContext $parserContext,
+        $categoryId
+    ) {
 
-		$tabsCategoryForm = new TabsCategoryForm($this->getRequest());
+        $tabsCategoryForm = $this->createForm(TabsCategoryForm::getName());
 
 		$message = false;
 
@@ -79,7 +92,7 @@ class CategoryTabsController extends BaseTabsController
 			$event = $this->createEventInstance($form->getData());
 			$event->setCategoryId($category->getId());
 
-			$this->dispatch(TabsEvent::TABS_CATEGORY_CREATE, $event);
+            $eventDispatcher->dispatch($event, TabsEvent::TABS_CATEGORY_CREATE);
 
 			return $this->generateSuccessRedirect($tabsCategoryForm);
 
@@ -96,18 +109,21 @@ class CategoryTabsController extends BaseTabsController
 
 			$tabsCategoryForm->setErrorMessage($message);
 
-			$this->getParserContext()
+            $parserContext
 				->addForm($tabsCategoryForm)
 				->setGeneralError($message);
 		}
 
-		return $this->updateAction();
+		return $this->updateAction($parserContext);
 	}
 
-	public function updateTabCategoryAssociation($tabId)
+	public function updateTabCategoryAssociation(
+        EventDispatcherInterface $eventDispatcher,
+        ParserContext $parserContext,
+        $tabId)
 	{
 
-		$tabsCategoryForm = new TabsCategoryForm($this->getRequest());
+		$tabsCategoryForm = $this->createForm(TabsCategoryForm::getName());
 
 		$message = false;
 
@@ -124,7 +140,7 @@ class CategoryTabsController extends BaseTabsController
 			$event->setTabId($tab->getId());
 			$event->setCategoryId($tab->getCategoryId());
 
-			$this->dispatch(TabsEvent::TABS_CATEGORY_UPDATE, $event);
+            $eventDispatcher->dispatch($event, TabsEvent::TABS_CATEGORY_UPDATE);
 
 			return $this->generateSuccessRedirect($tabsCategoryForm);
 
@@ -141,12 +157,11 @@ class CategoryTabsController extends BaseTabsController
 
 			$tabsCategoryForm->setErrorMessage($message);
 
-			$this->getParserContext()
+            $parserContext
 				->addForm($tabsCategoryForm)
 				->setGeneralError($message);
 		}
 
-		return $this->updateAction();
-
+		return $this->updateAction($parserContext);
 	}
 }

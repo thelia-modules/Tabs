@@ -24,6 +24,11 @@
 namespace Tabs;
 
 use Propel\Runtime\Connection\ConnectionInterface;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
+use Tabs\Model\CategoryAssociatedTabQuery;
+use Tabs\Model\ContentAssociatedTabQuery;
+use Tabs\Model\FolderAssociatedTabQuery;
+use Tabs\Model\ProductAssociatedTabQuery;
 use Thelia\Install\Database;
 use Thelia\Module\BaseModule;
 use Symfony\Component\Finder\Finder;
@@ -33,7 +38,7 @@ class Tabs extends BaseModule
 	const MESSAGE_DOMAIN_BO = "tabs";
 	const UPDATE_PATH = __DIR__ . DS . 'Config' . DS . 'update';
 
-	public function postActivation(ConnectionInterface $con = null)
+	public function postActivation(ConnectionInterface $con = null): void
 	{
         try {
             ContentAssociatedTabQuery::create()->findOne();
@@ -46,7 +51,7 @@ class Tabs extends BaseModule
         }
 	}
 
-	public function update($currentVersion, $newVersion, ConnectionInterface $con = null)
+	public function update($currentVersion, $newVersion, ConnectionInterface $con = null): void
 	{
 		$finder = (new Finder())->files()->name('#.*?\.sql#')->sortByName()->in(self::UPDATE_PATH);
 
@@ -63,4 +68,12 @@ class Tabs extends BaseModule
 			}
 		}
 	}
+
+    public static function configureServices(ServicesConfigurator $servicesConfigurator): void
+    {
+        $servicesConfigurator->load(self::getModuleCode().'\\', __DIR__)
+            ->exclude([THELIA_MODULE_DIR . ucfirst(self::getModuleCode()). "/I18n/*"])
+            ->autowire(true)
+            ->autoconfigure(true);
+    }
 }
