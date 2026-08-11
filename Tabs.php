@@ -25,49 +25,16 @@ namespace Tabs;
 
 use Propel\Runtime\Connection\ConnectionInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
-use Tabs\Model\CategoryAssociatedTabQuery;
-use Tabs\Model\ContentAssociatedTabQuery;
-use Tabs\Model\FolderAssociatedTabQuery;
-use Tabs\Model\ProductAssociatedTabQuery;
 use Thelia\Install\Database;
 use Thelia\Module\BaseModule;
-use Symfony\Component\Finder\Finder;
 
 class Tabs extends BaseModule
 {
-	const MESSAGE_DOMAIN_BO = "tabs";
-	const UPDATE_PATH = __DIR__ . DS . 'Config' . DS . 'update';
-
-	public function postActivation(ConnectionInterface $con = null): void
-	{
-        try {
-            ContentAssociatedTabQuery::create()->findOne();
-            ProductAssociatedTabQuery::create()->findOne();
-            FolderAssociatedTabQuery::create()->findOne();
-            CategoryAssociatedTabQuery::create()->findOne();
-        } catch (\Exception $ex) {
-            $database = new Database($con->getWrappedConnection());
-            $database->insertSql(null, array(THELIA_ROOT . '/local/modules/Tabs/Config/thelia.sql'));
-        }
-	}
-
-	public function update($currentVersion, $newVersion, ConnectionInterface $con = null): void
-	{
-		$finder = (new Finder())->files()->name('#.*?\.sql#')->sortByName()->in(self::UPDATE_PATH);
-
-		if ($finder->count() === 0) {
-			return;
-		}
-
-		$database = new Database($con);
-
-		/** @var \Symfony\Component\Finder\SplFileInfo $updateSQLFile */
-		foreach ($finder as $updateSQLFile) {
-			if (version_compare($currentVersion, str_replace('.sql', '', $updateSQLFile->getFilename()), '<')) {
-				$database->insertSql(null, [$updateSQLFile->getPathname()]);
-			}
-		}
-	}
+    public function postActivation(ConnectionInterface $con = null): void
+    {
+        $database = new Database($con->getWrappedConnection());
+        $database->insertSql(null, array(THELIA_ROOT . '/local/modules/Tabs/Config/thelia.sql'));
+    }
 
     public static function configureServices(ServicesConfigurator $servicesConfigurator): void
     {
