@@ -32,6 +32,7 @@ namespace Tabs;
 
 use Propel\Runtime\Connection\ConnectionInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
+use Symfony\Component\Finder\Finder;
 use Thelia\Core\Install\Database;
 use Thelia\Module\BaseModule;
 
@@ -41,14 +42,46 @@ class Tabs extends BaseModule
 
     public function postActivation(?ConnectionInterface $con = null): void
     {
+        if ('1' === $this->getConfigValue('is_initialized')) {
+            return;
+        }
+
+        (new Database($con))->insertSql(null, [__DIR__.'/Config/TheliaMain.sql']);
+
+        $this->setConfigValue('is_initialized', '1');
+    }
+
+    /**
+     * Run every Config/update/<version>.sql newer than the installed version.
+     */
+    public function update($currentVersion, $newVersion, ?ConnectionInterface $con = null): void
+    {
+        $updateDirectory = __DIR__.'/Config/update';
+
+        if (!is_dir($updateDirectory)) {
+            return;
+        }
+
+        $files = Finder::create()
+            ->files()
+            ->name('*.sql')
+            ->depth(0)
+            ->sortByName()
+            ->in($updateDirectory);
+
         $database = new Database($con);
-        $database->insertSql(null, [THELIA_ROOT.'/local/modules/Tabs/Config/thelia.sql']);
+
+        foreach ($files as $file) {
+            if (version_compare($currentVersion, $file->getBasename('.sql'), '<')) {
+                $database->insertSql(null, [$file->getPathname()]);
+            }
+        }
     }
 
     public static function configureServices(ServicesConfigurator $servicesConfigurator): void
     {
         $servicesConfigurator->load(self::getModuleCode().'\\', __DIR__)
-            ->exclude([__DIR__.'/I18n/*'])
+            ->exclude([__DIR__.'/I18n/*', __DIR__.'/Model/*', __DIR__.'/Api/Resource/*'])
             ->autowire(true)
             ->autoconfigure(true);
     }

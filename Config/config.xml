@@ -1,24 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
+<!--
+    TheliaKernel loads this file for every activated module without checking that it exists,
+    so it has to stay even though it declares nothing.
+
+    Loops, forms and hooks are auto-discovered in Thelia 3: forms through the `thelia.form`
+    tag (Thelia\Core\DependencyInjection\Compiler\RegisterFormPass), hooks through
+    Tabs\Hook\Back\TabsBackHook::getSubscribedHooks(). Routes use #[Route] attributes.
+-->
 <config xmlns="http://thelia.net/schema/dic/config"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://thelia.net/schema/dic/config http://thelia.net/schema/dic/config/thelia-1.0.xsd">
-
-    <loops>
-        <loop name="tabs" class="Tabs\Loop\Tabs" />
-    </loops>
-
-    <forms>
-        <form name="tabs_admin_content" class="Tabs\Form\TabsContentForm"/>
-        <form name="tabs_admin_product" class="Tabs\Form\TabsProductForm"/>
-        <form name="tabs_admin_category" class="Tabs\Form\TabsCategoryForm"/>
-        <form name="tabs_admin_folder" class="Tabs\Form\TabsFolderForm"/>
-    </forms>
-
-    <!--
-        Back-office hooks are declared by Tabs\Hook\Back\BackHook::getSubscribedHooks(), so the
-        autowired service is used and the hook can receive the form and loop services it needs
-        to feed the Twig templates.
-    -->
-
 </config>
