@@ -1,0 +1,150 @@
+{% set d = 'tabs' %}
+
+{% if form_error|default(false) %}
+	<div class="alert alert-danger alert-dismissible fade show" role="alert">
+		{{ 'One of the tabs that you have changed or created contains one or more errors. The <strong>Title</strong> and <strong>Description</strong> fields are mandatory'|trans({}, d)|raw }}
+		<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ 'Close'|trans }}"></button>
+	</div>
+{% endif %}
+
+<form action="{{ form_action_url }}" method="post" role="form" data-testid="tabs-{{ tab_source }}-create-form">
+	<fieldset>
+		<legend class="h6">{{ 'Tabs association'|trans({}, d) }}</legend>
+
+		{% if form._token is defined %}
+			<input type="hidden" name="{{ form._token.vars.full_name }}" value="{{ form._token.vars.value }}">
+		{% endif %}
+		<input type="hidden" name="{{ form.locale.vars.full_name }}" value="{{ edit_language_locale }}">
+		<input type="hidden" name="{{ form.success_url.vars.full_name }}" value="{{ form_success_url }}">
+		<input type="hidden" name="current_tab" value="modules">
+
+		{% for name, value in parent_inputs %}
+			<input type="hidden" name="{{ name }}" value="{{ value }}">
+		{% endfor %}
+
+		<div class="mb-3">
+			<label class="form-label" for="tabs_title">{{ form.title.vars.label }}</label>
+			<input type="text" class="form-control" id="tabs_title" name="{{ form.title.vars.full_name }}" value="{{ form.title.vars.value }}" required placeholder="{{ 'Title'|trans }}">
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label" for="tabs_description">{{ form.description.vars.label }}</label>
+			<textarea class="form-control wysiwyg" id="tabs_description" name="{{ form.description.vars.full_name }}" rows="10">{{ form.description.vars.value }}</textarea>
+		</div>
+
+		<div class="mb-3">
+			<span class="form-label d-block">{{ 'Visibility'|trans }}</span>
+			<div class="form-check">
+				<input class="form-check-input" type="checkbox" value="1" id="tabs_visible" name="{{ form.visible.vars.full_name }}" checked>
+				<label class="form-check-label" for="tabs_visible">{{ form.visible.vars.label }}</label>
+			</div>
+		</div>
+
+		<button type="submit" class="btn btn-primary" data-testid="tabs-{{ tab_source }}-create-submit">
+			<i class="bi bi-check2" aria-hidden="true"></i>
+			{{ 'Save'|trans }}
+		</button>
+	</fieldset>
+</form>
+
+{% if tabs is not empty %}
+	<div class="mt-4 accordion" id="tabs-{{ tab_source }}-accordion">
+		{% for tab in tabs %}
+			<div class="accordion-item">
+				<div class="gap-2 accordion-header d-flex align-items-center pe-2">
+					<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tabs-collapse-{{ tab.ID }}" aria-expanded="false" aria-controls="tabs-collapse-{{ tab.ID }}">
+						{{ tab.TITLE }}
+					</button>
+
+					{% if position_path is defined and position_path and is_granted('UPDATE', 'admin.tabs') %}
+						<div class="flex-shrink-0 btn-group btn-group-sm" role="group" aria-label="{{ 'Position'|trans }}">
+							<a class="btn btn-outline-secondary" title="{{ 'Move up'|trans }}" href="{{ thelia_url(position_path, position_params|merge({ mode: 'up', tab_id: tab.ID })) }}">
+								<i class="bi bi-arrow-up" aria-hidden="true"></i>
+							</a>
+							<span class="btn btn-outline-secondary disabled">{{ tab.POSITION }}</span>
+							<a class="btn btn-outline-secondary" title="{{ 'Move down'|trans }}" href="{{ thelia_url(position_path, position_params|merge({ mode: 'down', tab_id: tab.ID })) }}">
+								<i class="bi bi-arrow-down" aria-hidden="true"></i>
+							</a>
+						</div>
+					{% else %}
+						<span class="flex-shrink-0 badge text-bg-secondary">{{ tab.POSITION }}</span>
+					{% endif %}
+
+					{% if is_granted('DELETE', 'admin.tabs') %}
+						<a class="flex-shrink-0 btn btn-sm btn-danger" href="#tabs_delete_dialog" title="{{ 'Delete this tab'|trans({}, d) }}" data-id="{{ tab.ID }}" data-bs-toggle="modal" data-bs-target="#tabs_delete_dialog">
+							<i class="bi bi-trash" aria-hidden="true"></i>
+						</a>
+					{% endif %}
+				</div>
+
+				<div id="tabs-collapse-{{ tab.ID }}" class="accordion-collapse collapse" data-bs-parent="#tabs-{{ tab_source }}-accordion">
+					<div class="accordion-body">
+						<form action="{{ form_action_url }}" method="post" role="form" data-testid="tabs-{{ tab_source }}-update-form-{{ tab.ID }}">
+							<fieldset>
+								<legend class="h6">{{ tab.TITLE }}</legend>
+
+								{% if form._token is defined %}
+									<input type="hidden" name="{{ form._token.vars.full_name }}" value="{{ form._token.vars.value }}">
+								{% endif %}
+								<input type="hidden" name="{{ form.locale.vars.full_name }}" value="{{ edit_language_locale }}">
+								<input type="hidden" name="{{ form.success_url.vars.full_name }}" value="{{ form_success_url }}">
+								<input type="hidden" name="current_tab" value="modules">
+								<input type="hidden" name="tab_id" value="{{ tab.ID }}">
+
+								{% for name, value in parent_inputs %}
+									<input type="hidden" name="{{ name }}" value="{{ value }}">
+								{% endfor %}
+
+								<div class="mb-3">
+									<label class="form-label" for="tabs_title-{{ tab.ID }}">{{ form.title.vars.label }}</label>
+									<input type="text" class="form-control" id="tabs_title-{{ tab.ID }}" name="{{ form.title.vars.full_name }}" value="{{ tab.TITLE }}" required placeholder="{{ 'Title'|trans }}">
+								</div>
+
+								<div class="mb-3">
+									<label class="form-label" for="tabs_description-{{ tab.ID }}">{{ form.description.vars.label }}</label>
+									<textarea class="form-control wysiwyg" id="tabs_description-{{ tab.ID }}" name="{{ form.description.vars.full_name }}" rows="10">{{ tab.DESCRIPTION }}</textarea>
+								</div>
+
+								<div class="mb-3">
+									<span class="form-label d-block">{{ 'Visibility'|trans }}</span>
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" value="1" id="tabs_visible-{{ tab.ID }}" name="{{ form.visible.vars.full_name }}" {% if tab.VISIBLE != 0 %} checked {% endif %}>
+										<label class="form-check-label" for="tabs_visible-{{ tab.ID }}">{{ form.visible.vars.label }}</label>
+									</div>
+								</div>
+
+								<p class="text-muted small">
+									{{ 'Tab created on %date_create. Last modification: %date_change'|trans({
+                                        '%date_create': format_date(tab.CREATE_DATE),
+                                        '%date_change': format_date(tab.UPDATE_DATE),
+                                    }, d) }}
+								</p>
+
+								<button type="submit" class="btn btn-primary" data-testid="tabs-{{ tab_source }}-update-submit-{{ tab.ID }}">
+									<i class="bi bi-check2" aria-hidden="true"></i>
+									{{ 'Save'|trans }}
+								</button>
+							</fieldset>
+						</form>
+					</div>
+				</div>
+			</div>
+		{% endfor %}
+	</div>
+{% endif %}
+
+{#
+    The confirmation dialog carries the id of the tab to delete; hook/footer_js.html.twig
+    fills #tabs_delete_id from the data-id of the trash button that opened it.
+#}
+{% component 'BoConfirmDialog' with {
+    id: 'tabs_delete_dialog',
+    title: 'Delete tab'|trans({}, d),
+    formAction: path('tab_delete_action'),
+    testid: 'tabs-delete',
+} %}
+{% block body %}
+	<p class="mb-0">{{ 'Do you really want to delete this tab ?'|trans({}, 'tabs') }}</p>
+	<input type="hidden" name="tab_id" id="tabs_delete_id" value="">
+{% endblock %}
+{% endcomponent %}

@@ -1,0 +1,27 @@
+{#
+    Hook main.footer-js: carry the id of the tab being deleted into the confirmation dialog.
+
+    Twig counterpart of the Smarty hook/footer_js.html — rewritten without jQuery, which the
+    Twig back-office does not ship, and on the Bootstrap 5 modal event so it also works when
+    the dialog is opened with the keyboard. No-op on the pages that have no tabs dialog.
+#}
+<script>
+    (function () {
+        var dialog = document.getElementById('tabs_delete_dialog');
+
+        if (null === dialog) {
+            return;
+        }
+
+        dialog.addEventListener('show.bs.modal', function (event) {
+            var trigger = event.relatedTarget;
+            var input = document.getElementById('tabs_delete_id');
+
+            if (!trigger || null === input) {
+                return;
+            }
+
+            input.value = trigger.getAttribute('data-id') || '';
+        });
+    })();
+</script>

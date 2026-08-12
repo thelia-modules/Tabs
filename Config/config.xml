@@ -15,15 +15,10 @@
         <form name="tabs_admin_folder" class="Tabs\Form\TabsFolderForm"/>
     </forms>
 
-    <hooks>
-        <hook id="tabs.hook.back" class="Tabs\Hook\Back\BackHook" scope="request">
-            <tag name="hook.event_listener" type="backoffice" event="main.top-menu-tools"/>
-            <tag name="hook.event_listener" type="backoffice" event="category.tab-content"/>
-            <tag name="hook.event_listener" type="backoffice" event="product.tab-content"/>
-            <tag name="hook.event_listener" type="backoffice" event="folder.tab-content"/>
-            <tag name="hook.event_listener" type="backoffice" event="content.tab-content"/>
-            <tag name="hook.event_listener" type="backoffice" event="main.footer-js"/>
-        </hook>
-    </hooks>
+    <!--
+        Back-office hooks are declared by Tabs\Hook\Back\BackHook::getSubscribedHooks(), so the
+        autowired service is used and the hook can receive the form and loop services it needs
+        to feed the Twig templates.
+    -->
 
 </config>
