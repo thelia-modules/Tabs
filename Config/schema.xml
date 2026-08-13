@@ -3,77 +3,36 @@
     <!--
     See propel documentation on http://propelorm.org for all information about schema file
     -->
-    <table name="content_associated_tab" namespace="Tabs\Model">
-        <column autoIncrement="true" name="id" primaryKey="true" required="true" type="INTEGER" />
-        <column name="content_id" required="true" type="INTEGER" />
-        <column name="title" size="255" type="VARCHAR" />
-        <column name="description" type="CLOB" />
-        <column name="position" required="true" type="INTEGER" />
-        <column name="visible" type="TINYINT" />
-        <foreign-key foreignTable="content" name="fk_content_associated_tab_content_id" onDelete="CASCADE" onUpdate="RESTRICT">
-            <reference foreign="id" local="content_id" />
-        </foreign-key>
-        <index name="idx_content_associated_tab_content_id">
-            <index-column name="content_id" />
-        </index>
-        <behavior name="timestampable" />
-        <behavior name="i18n">
-            <parameter name="i18n_columns" value="title,description" />
-        </behavior>
-    </table>
 
-    <table name="product_associated_tab" namespace="Tabs\Model">
-        <column autoIncrement="true" name="id" primaryKey="true" required="true" type="INTEGER" />
-        <column name="product_id" required="true" type="INTEGER" />
-        <column name="title" size="255" type="VARCHAR" />
-        <column name="description" type="CLOB" />
-        <column name="position" required="true" type="INTEGER" />
-        <column name="visible" type="TINYINT" />
-        <foreign-key foreignTable="product" name="fk_product_associated_tab_product_id" onDelete="CASCADE" onUpdate="RESTRICT">
-            <reference foreign="id" local="product_id" />
-        </foreign-key>
-        <index name="idx_product_associated_tab_product_id">
-            <index-column name="product_id" />
-        </index>
-        <behavior name="timestampable" />
-        <behavior name="i18n">
-            <parameter name="i18n_columns" value="title,description" />
-        </behavior>
-    </table>
+    <!--
+    A tab is attached to a Thelia item through the (item_type, item_id) pair rather than
+    through a dedicated table per type. item_type holds a Tabs\Enum\TabItemType value.
 
-    <table name="folder_associated_tab" namespace="Tabs\Model">
+    A polymorphic column cannot carry a foreign key, so the ON DELETE CASCADE the four
+    former tables relied on is replaced by Tabs\EventListener\ItemDeleteListener.
+    -->
+    <table name="item_associated_tab" namespace="Tabs\Model">
         <column autoIncrement="true" name="id" primaryKey="true" required="true" type="INTEGER" />
-        <column name="folder_id" required="true" type="INTEGER" />
+        <column name="item_type" required="true" size="32" type="VARCHAR" />
+        <column name="item_id" required="true" type="INTEGER" />
+        <column name="position" defaultValue="0" required="true" type="INTEGER" />
+        <column name="visible" defaultValue="1" required="true" type="TINYINT" />
+        <!-- Moved to item_associated_tab_i18n by the i18n behavior below. -->
         <column name="title" size="255" type="VARCHAR" />
         <column name="description" type="CLOB" />
-        <column name="position" required="true" type="INTEGER" />
-        <column name="visible" type="TINYINT" />
-        <foreign-key foreignTable="folder" name="fk_folder_associated_tab_folder_id" onDelete="CASCADE" onUpdate="RESTRICT">
-            <reference foreign="id" local="folder_id" />
-        </foreign-key>
-        <index name="idx_folder_associated_tab_folder_id">
-            <index-column name="folder_id" />
-        </index>
-        <behavior name="timestampable" />
-        <behavior name="i18n">
-            <parameter name="i18n_columns" value="title,description" />
-        </behavior>
-    </table>
 
-    <table name="category_associated_tab" namespace="Tabs\Model">
-        <column autoIncrement="true" name="id" primaryKey="true" required="true" type="INTEGER" />
-        <column name="category_id" required="true" type="INTEGER" />
-        <column name="title" size="255" type="VARCHAR" />
-        <column name="description" type="CLOB" />
-        <column name="position" required="true" type="INTEGER" />
-        <column name="visible" type="TINYINT" />
-        <foreign-key foreignTable="category" name="fk_category_associated_tab_category_id" onDelete="CASCADE" onUpdate="RESTRICT">
-            <reference foreign="id" local="category_id" />
-        </foreign-key>
-        <index name="idx_category_associated_tab_category_id">
-            <index-column name="category_id" />
+        <index name="idx_item_associated_tab_item">
+            <index-column name="item_type" />
+            <index-column name="item_id" />
         </index>
+
         <behavior name="timestampable" />
+        <!-- Positions are numbered independently for each (item_type, item_id) pair. -->
+        <behavior name="sortable">
+            <parameter name="rank_column" value="position" />
+            <parameter name="use_scope" value="true" />
+            <parameter name="scope_column" value="item_type,item_id" />
+        </behavior>
         <behavior name="i18n">
             <parameter name="i18n_columns" value="title,description" />
         </behavior>

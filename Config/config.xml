@@ -1,29 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
+<!--
+    TheliaKernel loads this file for every activated module without checking that it exists,
+    so it has to stay even though it declares nothing.
+
+    Loops, forms and hooks are auto-discovered in Thelia 3: forms through the `thelia.form`
+    tag (Thelia\Core\DependencyInjection\Compiler\RegisterFormPass), hooks through
+    Tabs\Hook\Back\TabsBackHook::getSubscribedHooks(). Routes use #[Route] attributes.
+-->
 <config xmlns="http://thelia.net/schema/dic/config"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://thelia.net/schema/dic/config http://thelia.net/schema/dic/config/thelia-1.0.xsd">
-
-    <loops>
-        <loop name="tabs" class="Tabs\Loop\Tabs" />
-    </loops>
-
-    <forms>
-        <form name="tabs_admin_content" class="Tabs\Form\TabsContentForm"/>
-        <form name="tabs_admin_product" class="Tabs\Form\TabsProductForm"/>
-        <form name="tabs_admin_category" class="Tabs\Form\TabsCategoryForm"/>
-        <form name="tabs_admin_folder" class="Tabs\Form\TabsFolderForm"/>
-    </forms>
-
-    <hooks>
-        <hook id="tabs.hook.back" class="Tabs\Hook\Back\BackHook" scope="request">
-            <tag name="hook.event_listener" type="backoffice" event="main.top-menu-tools"/>
-            <tag name="hook.event_listener" type="backoffice" event="category.tab-content"/>
-            <tag name="hook.event_listener" type="backoffice" event="product.tab-content"/>
-            <tag name="hook.event_listener" type="backoffice" event="folder.tab-content"/>
-            <tag name="hook.event_listener" type="backoffice" event="content.tab-content"/>
-            <tag name="hook.event_listener" type="backoffice" event="main.footer-js"/>
-        </hook>
-    </hooks>
-
 </config>

@@ -1,12 +1,20 @@
+-- Tabs 5.0.0 — the four per-type tables collapse into a single polymorphic one.
+--
+-- Deliberately destructive: 4.x could not create a tab at all (position was NOT NULL with
+-- no default and no code ever set it), so there is no data worth carrying over.
 
-# This is a fix for InnoDB in MySQL >= 4.1.x
-# It "suspends judgement" for fkey relationships until are tables are set.
 SET FOREIGN_KEY_CHECKS = 0;
 
--- ---------------------------------------------------------------------
--- item_associated_tab
--- ---------------------------------------------------------------------
+DROP TABLE IF EXISTS `product_associated_tab_i18n`;
+DROP TABLE IF EXISTS `product_associated_tab`;
+DROP TABLE IF EXISTS `content_associated_tab_i18n`;
+DROP TABLE IF EXISTS `content_associated_tab`;
+DROP TABLE IF EXISTS `category_associated_tab_i18n`;
+DROP TABLE IF EXISTS `category_associated_tab`;
+DROP TABLE IF EXISTS `folder_associated_tab_i18n`;
+DROP TABLE IF EXISTS `folder_associated_tab`;
 
+DROP TABLE IF EXISTS `item_associated_tab_i18n`;
 DROP TABLE IF EXISTS `item_associated_tab`;
 
 CREATE TABLE `item_associated_tab`
@@ -22,12 +30,6 @@ CREATE TABLE `item_associated_tab`
     INDEX `idx_item_associated_tab_item` (`item_type`, `item_id`)
 ) ENGINE=InnoDB;
 
--- ---------------------------------------------------------------------
--- item_associated_tab_i18n
--- ---------------------------------------------------------------------
-
-DROP TABLE IF EXISTS `item_associated_tab_i18n`;
-
 CREATE TABLE `item_associated_tab_i18n`
 (
     `id` INTEGER NOT NULL,
@@ -41,5 +43,4 @@ CREATE TABLE `item_associated_tab_i18n`
         ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
-# This restores the fkey checks, after having unset them earlier
 SET FOREIGN_KEY_CHECKS = 1;
