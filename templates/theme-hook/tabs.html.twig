@@ -1,0 +1,25 @@
+{% set tabs = get_tabs({
+    itemType: itemType,
+    itemId: itemId,
+    'order[position]': 'asc',
+}) %}
+
+{% if tabs is not empty %}
+    <section class="TabsModule">
+        <ul class="TabsModule-list">
+            {% for tab in tabs %}
+                {% set title = tab.i18ns.title|default('') %}
+                {% if title is not empty %}
+                    <li class="TabsModule-item">
+                        <details class="TabsModule-tab">
+                            <summary class="TabsModule-tab-head">
+                                <span class="TabsModule-tab-title">{{ title }}</span>
+                            </summary>
+                            <div class="TabsModule-tab-content">{{ tab.i18ns.description|default('')|raw }}</div>
+                        </details>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </section>
+{% endif %}
