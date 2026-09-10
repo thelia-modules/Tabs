@@ -4,7 +4,7 @@ Attach custom content tabs — a title and a rich description — to products, c
 categories and folders. Tabs are managed from the back office and rendered in the front
 office through theme hooks or the API.
 
-- **Version** 5.0.0
+- **Version** 5.0.1
 - **Requires** Thelia 3.0+ / PHP 8.3
 
 ## Installation
